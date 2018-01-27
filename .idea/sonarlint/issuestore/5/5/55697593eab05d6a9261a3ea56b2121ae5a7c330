@@ -1,0 +1,12 @@
+
+Rsquid:S2696"6Make the enclosing method "static" or remove this set.(À†‡Ì8İí§ò×+
+Msquid:S1602",Remove useless curly braces around statement(–ñæ¸şÿÿÿÿ8Ô§ó‚Ø+
+Msquid:S1602",Remove useless curly braces around statement(–ñæ¸şÿÿÿÿ8Ô§ó‚Ø+
+Vsquid:S1481":Remove this unused "chessPositionsStorage" local variable.(Ú­£–8üËÈ‚Ø+
+T
+squid:S106"9Replace this use of System.out or System.err by a logger.(ùÌå8ÇÊé÷×+
+Msquid:S1602",Remove useless curly braces around statement(–ñæ¸şÿÿÿÿ8Ä ô‚Ø+
+S
+squid:S106"9Replace this use of System.out or System.err by a logger.(€Ä‰S8ôâ„ƒØ+
+esquid:S1854"IRemove this useless assignment to local variable "chessPositionsStorage".(Ú­£–8ô¶À‚Ø+
+psquid:HiddenFieldCheck"IRename "chessPositionsStorage" which hides the field declared at line 22.(Ú­£–8ô¶À‚Ø+
