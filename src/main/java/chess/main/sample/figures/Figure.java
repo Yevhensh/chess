@@ -14,8 +14,10 @@ public abstract class Figure {
     }
 
     public String getFilenamePath() {
-        return String.format("src/chess/main/sample/figuresphoto/%s.png", getFileNaming());
+        return String.format(basePathPrefix + "pictures/%s.png", getFileNaming());
     }
+    
+    private final String basePathPrefix = getClass().getClassLoader().getResource("").getPath();
 
     public abstract String getFileNaming();
 
