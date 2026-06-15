@@ -12,7 +12,7 @@ import java.util.List;
 public class KnightMove extends Movement {
 
     @Override
-    public List<Integer> determineAvailableMovements(int deckCell, Figure figure) {
+    public List<Integer> determineAvailableMovements(java.util.Map<Integer, Figure> positions, int deckCell, Figure figure) {
         List<Integer> availableMoves = new ArrayList<>();
         DeckManager deckManager = DeckManager.getInstance();
         int row = ChessUtils.getRow(deckCell);
@@ -28,7 +28,7 @@ public class KnightMove extends Movement {
             int nextCol = col + move[1];
             if (ChessUtils.isValid(nextRow, nextCol)) {
                 int nextIndex = ChessUtils.getIndex(nextRow, nextCol);
-                if (deckManager.isEmptyDeckCell(nextIndex) || deckManager.isOppositeFigureOnDeckCell(nextIndex, figure.getPosition())) {
+                if (deckManager.isEmptyDeckCell(positions, nextIndex) || deckManager.isOppositeFigureOnDeckCell(positions, nextIndex, figure.getPosition())) {
                     availableMoves.add(nextIndex);
                 }
             }

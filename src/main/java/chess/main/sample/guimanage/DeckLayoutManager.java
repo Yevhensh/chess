@@ -95,11 +95,7 @@ public class DeckLayoutManager {
         String picturePath = figure.getFilenamePath();
         if (!(figure instanceof Empty)) {
             Image image = null;
-            try {
-                image = new Image(new FileInputStream(picturePath));
-            } catch (FileNotFoundException e) {
-                e.printStackTrace();
-            }
+            image = new Image(getClass().getClassLoader().getResourceAsStream(picturePath));
             ImageView imageView = new ImageView(image);
             imageView.setX(positionX + 9);
             imageView.setY(positionY + 9);

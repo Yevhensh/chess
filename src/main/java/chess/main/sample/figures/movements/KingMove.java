@@ -12,12 +12,12 @@ import java.util.stream.Collectors;
 
 public class KingMove extends Movement {
     @Override
-    public List<Integer> determineAvailableMovements(int deckCell, Figure figure) {
-        List<Integer> allMoves = getBasicMoves(deckCell, figure);
-        return filterAllMovesWithCheckPossible(allMoves, figure);
+    public List<Integer> determineAvailableMovements(java.util.Map<Integer, Figure> positions, int deckCell, Figure figure) {
+        List<Integer> allMoves = getBasicMoves(positions, deckCell, figure);
+        return filterAllMovesWithCheckPossible(positions, allMoves, figure);
     }
 
-    public List<Integer> getBasicMoves(int deckCell, Figure figure) {
+    public List<Integer> getBasicMoves(java.util.Map<Integer, Figure> positions, int deckCell, Figure figure) {
         List<Integer> allMoves = new ArrayList<>();
         DeckManager deckManager = DeckManager.getInstance();
         int row = ChessUtils.getRow(deckCell);
@@ -30,7 +30,7 @@ public class KingMove extends Movement {
                 int nextCol = col + dc;
                 if (ChessUtils.isValid(nextRow, nextCol)) {
                     int nextIndex = ChessUtils.getIndex(nextRow, nextCol);
-                    if (!deckManager.isAllyFigureOnDeckCell(nextIndex, figure.getPosition())) {
+                    if (!deckManager.isAllyFigureOnDeckCell(positions, nextIndex, figure.getPosition())) {
                         allMoves.add(nextIndex);
                     }
                 }
@@ -39,13 +39,13 @@ public class KingMove extends Movement {
         return allMoves;
     }
 
-    private List<Integer> filterAllMovesWithCheckPossible(List<Integer> allMoves, Figure figure) {
+    private List<Integer> filterAllMovesWithCheckPossible(java.util.Map<Integer, Figure> positions, List<Integer> allMoves, Figure figure) {
         DeckManager deckManager = DeckManager.getInstance();
         chess.main.sample.figures.Position oppositePosition =
             (figure.getPosition() == chess.main.sample.figures.Position.WHITE) ?
             chess.main.sample.figures.Position.BLACK : chess.main.sample.figures.Position.WHITE;
 
-        List<Integer> oppositeSiteAttacks = deckManager.getAllOppositeSiteAttacks(oppositePosition);
+        List<Integer> oppositeSiteAttacks = deckManager.getAllOppositeSiteAttacks(positions, oppositePosition);
 
         return allMoves.stream()
                 .filter(item -> !oppositeSiteAttacks.contains(item))

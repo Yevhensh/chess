@@ -19,8 +19,13 @@ public class Knight extends Figure {
 
     @Override
     public List<Integer> getAllAvailableMovements(int deckCell) {
+        return getAllAvailableMovements(chess.main.sample.storage.ChessPositionsStorage.getGlobalStorage().getPositionsContainer(), deckCell);
+    }
+
+    @Override
+    public List<Integer> getAllAvailableMovements(java.util.Map<Integer, Figure> positions, int deckCell) {
         KnightMove movement = new KnightMove();
-        return movement.determineAvailableMovements(deckCell, this);
+        return movement.determineAvailableMovements(positions, deckCell, this);
     }
 
     @Override
