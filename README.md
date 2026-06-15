@@ -26,6 +26,7 @@ mvn clean compile
 ```bash
 mvn javafx:run
 ```
+Alternatively, if you encounter "JavaFX runtime components are missing" error when running the `Main` class directly, use the `Launcher` class or run via Maven as shown above.
 
 ### Run tests:
 ```bash

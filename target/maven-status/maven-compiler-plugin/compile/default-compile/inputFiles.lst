@@ -24,3 +24,4 @@
 /app/src/main/java/chess/main/sample/manage/DeckManager.java
 /app/src/main/java/chess/main/sample/figures/instances/Empty.java
 /app/src/main/java/chess/main/sample/figures/Position.java
+/app/src/main/java/chess/main/sample/Launcher.java

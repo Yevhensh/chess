@@ -68,7 +68,7 @@
                     </execution>
                 </executions>
                 <configuration>
-                    <mainClass>chess.main.sample.Main</mainClass>
+                    <mainClass>chess.main.sample.Launcher</mainClass>
                 </configuration>
             </plugin>
 
@@ -80,7 +80,7 @@
                 <configuration>
                     <archive>
                         <manifest>
-                            <mainClass>com.example.Main</mainClass>
+                            <mainClass>chess.main.sample.Launcher</mainClass>
                         </manifest>
                     </archive>
                 </configuration>
