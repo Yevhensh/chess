@@ -1,3 +1,5 @@
 /app/src/test/java/chess/main/sample/manage/DeckManagerTest.java
 /app/src/test/java/chess/main/sample/figures/movements/PawnMoveTest.java
 /app/src/test/java/chess/main/sample/figures/movements/KnightMoveTest.java
+/app/src/test/java/chess/main/sample/figures/movements/RokMoveTest.java
+/app/src/test/java/chess/main/sample/figures/movements/BishopMoveTest.java
