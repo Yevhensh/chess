@@ -58,23 +58,23 @@ public class DeckManager {
         for (Map.Entry<Integer, Figure> entry : positions.entrySet()) {
             Figure figure = entry.getValue();
             if (figure.getPosition().equals(oppositePosition)) {
-                if (figure instanceof King) {
-                    attacks.addAll(new KingMove().getBasicMoves(positions, entry.getKey(), figure));
-                } else if (figure instanceof Pawn) {
-                    int row = ChessUtils.getRow(entry.getKey());
-                    int col = ChessUtils.getCol(entry.getKey());
-                    int forwardDir = (figure.getPosition() == Position.WHITE) ? -1 : 1;
-                    int[] captureCols = {col - 1, col + 1};
-                    for (int nextCol : captureCols) {
-                        if (nextCol >= 0 && nextCol < 8) {
-                            int nextRow = row + forwardDir;
-                            if (nextRow >= 0 && nextRow < 8) {
-                                attacks.add(ChessUtils.getIndex(nextRow, nextCol));
+                switch (figure) {
+                    case King king -> attacks.addAll(new KingMove().getBasicMoves(positions, entry.getKey(), king));
+                    case Pawn pawn -> {
+                        int row = ChessUtils.getRow(entry.getKey());
+                        int col = ChessUtils.getCol(entry.getKey());
+                        int forwardDir = (pawn.getPosition() == Position.WHITE) ? -1 : 1;
+                        int[] captureCols = {col - 1, col + 1};
+                        for (int nextCol : captureCols) {
+                            if (nextCol >= 0 && nextCol < 8) {
+                                int nextRow = row + forwardDir;
+                                if (nextRow >= 0 && nextRow < 8) {
+                                    attacks.add(ChessUtils.getIndex(nextRow, nextCol));
+                                }
                             }
                         }
                     }
-                } else {
-                    attacks.addAll(figure.getAllAvailableMovements(entry.getKey()));
+                    default -> attacks.addAll(figure.getAllAvailableMovements(entry.getKey()));
                 }
             }
         }
@@ -82,7 +82,10 @@ public class DeckManager {
     }
 
     public boolean isCheck(ChessPositionsStorage positionsStorage, Position position) {
-        Position oppositePosition = (position == Position.BLACK) ? Position.WHITE : Position.BLACK;
+        Position oppositePosition = switch (position) {
+            case BLACK -> Position.WHITE;
+            case WHITE -> Position.BLACK;
+        };
         List<Integer> oppositeAttacks = getAllOppositeSiteAttacks(positionsStorage.getPositionsContainer(), oppositePosition);
 
         int kingIndex = (position == Position.BLACK) ? positionsStorage.getBlackKingIndex() : positionsStorage.getWhiteKingIndex();

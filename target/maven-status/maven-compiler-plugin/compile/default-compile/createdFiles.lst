@@ -11,6 +11,7 @@ chess/main/sample/figures/Figure.class
 chess/main/sample/figures/Movement.class
 chess/main/sample/figures/movements/PawnMove.class
 chess/main/sample/figures/movements/Diagonal.class
+chess/main/sample/manage/DeckManager$1.class
 chess/main/sample/storage/LayoutChessPositionsStorage.class
 chess/main/sample/figures/instances/Empty.class
 chess/main/sample/Main.class
