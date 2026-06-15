@@ -32,26 +32,37 @@ public class ChessPositionsStorage {
         positionsContainer.put(index, new Rok(Position.BLACK));
         positionsContainer.put(++index, new Knight(Position.BLACK));
         positionsContainer.put(++index, new Bishop(Position.BLACK));
+
+        // Corrected: Queen on d8 (index 3), King on e8 (index 4)
+        positionsContainer.put(++index, new Queen(Position.BLACK));
         positionsContainer.put(++index, new King(Position.BLACK));
         setBlackKingIndex(index);
-        positionsContainer.put(++index, new Queen(Position.BLACK));
+
         positionsContainer.put(++index, new Bishop(Position.BLACK));
         positionsContainer.put(++index, new Knight(Position.BLACK));
         positionsContainer.put(++index, new Rok(Position.BLACK));
+
         IntStream.range(++index, index + 8)
                 .forEach(item -> positionsContainer.put(item, new Pawn(Position.BLACK)));
+
         index = 48;
-        IntStream.range(index, index += 8)
+        IntStream.range(index, index + 8)
                 .forEach(item -> positionsContainer.put(item, new Pawn(Position.WHITE)));
+
+        index = 56;
         positionsContainer.put(index, new Rok(Position.WHITE));
         positionsContainer.put(++index, new Knight(Position.WHITE));
         positionsContainer.put(++index, new Bishop(Position.WHITE));
+
+        // Corrected: Queen on d1 (index 59), King on e1 (index 60)
+        positionsContainer.put(++index, new Queen(Position.WHITE));
         positionsContainer.put(++index, new King(Position.WHITE));
         setWhiteKingIndex(index);
-        positionsContainer.put(++index, new Queen(Position.WHITE));
+
         positionsContainer.put(++index, new Bishop(Position.WHITE));
         positionsContainer.put(++index, new Knight(Position.WHITE));
         positionsContainer.put(++index, new Rok(Position.WHITE));
+
         LayoutChessPositionsStorage.getInstance().gameStartPositionsRemind(positionsContainer);
         ChessPositionsStorage.setGlobalStorage(this);
         return positionsContainer;

@@ -22,7 +22,6 @@ public class MovementHandler implements EventHandler<MouseEvent> {
         Node node = (Node) event.getTarget();
         DeckLayoutManager layoutManager = DeckLayoutManager.getInstance();
         DeckManager deckManager = DeckManager.getInstance();
-        ChessPositionsStorage globalChessPositionsStorage = ChessPositionsStorage.getGlobalStorage();
         Selected selected = null;
         if (node instanceof Rectangle) {
             // clicked on rectangle
@@ -33,25 +32,29 @@ public class MovementHandler implements EventHandler<MouseEvent> {
             ImageView imageView = (ImageView) node;
             selected = layoutManager.getSelectedByDeckPosition((int) imageView.getX() - 9, (int) imageView.getY() - 9);
         }
+
+        if (selected == null) return;
+
         System.out.println(selected);
+
         // check whether selected is prev selected
         if (Selected.isGlobalSelected()) {
             Figure globalFigure = Selected.getGlobalSelected();
             int globalIndex = Selected.getGlobalIndex();
             List<Integer> globalSelectedMovements = globalFigure.getAllAvailableMovements(globalIndex);
-            if (!globalSelectedMovements.contains(selected.getIndex())) {
-                // not right available movement
-                Selected.emptyGlobalSelected();
-                return;
-            } else if (!deckManager.isCheck(globalChessPositionsStorage, globalFigure.getPosition())) {
-                // not check
-                deckManager.makeTurn(globalIndex, selected.getIndex());
-            } else {
-                // check
+
+            if (globalSelectedMovements.contains(selected.getIndex())) {
+                if (deckManager.isMoveLegal(globalIndex, selected.getIndex(), globalFigure.getPosition())) {
+                    deckManager.makeTurn(globalIndex, selected.getIndex());
+                    TurnSwitcher.switchPosition();
+                } else {
+                    System.out.println("Move is illegal (King in check)");
+                }
             }
+            Selected.emptyGlobalSelected();
         } else {
             // selected figure correspond to actual site turn
-            if (TurnSwitcher.getPosition().equals(selected.getSelected().getPosition())) {
+            if (selected.getSelected() != null && TurnSwitcher.getPosition().equals(selected.getSelected().getPosition())) {
                 Selected.setGlobalSelected(selected);
             }
         }

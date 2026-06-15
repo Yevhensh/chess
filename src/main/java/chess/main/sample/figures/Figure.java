@@ -23,6 +23,10 @@ public abstract class Figure {
 
     public abstract List<Integer> getAllAvailableMovements(int deckCell);
 
+    public List<Integer> getPseudoLegalMovements(int deckCell) {
+        return getAllAvailableMovements(deckCell);
+    }
+
     public boolean isWhite() {
         return this.position == Position.WHITE;
     }

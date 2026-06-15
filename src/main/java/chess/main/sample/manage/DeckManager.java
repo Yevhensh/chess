@@ -4,9 +4,14 @@ package chess.main.sample.manage;
 import chess.main.sample.figures.Figure;
 import chess.main.sample.figures.Position;
 import chess.main.sample.figures.instances.King;
+import chess.main.sample.figures.instances.Pawn;
+import chess.main.sample.figures.movements.KingMove;
 import chess.main.sample.guimanage.DeckLayoutManager;
 import chess.main.sample.storage.ChessPositionsStorage;
+import chess.main.sample.utils.ChessUtils;
 
+import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.stream.Collectors;
@@ -32,61 +37,115 @@ public class DeckManager {
     }
 
     public boolean isEmptyDeckCell(int deckCell) {
-        Map<Integer, Figure> positions = chessPositionsStorage.getPositionsContainer();
+        Map<Integer, Figure> positions = ChessPositionsStorage.getGlobalStorage().getPositionsContainer();
         return (positions.get(deckCell) == null);
     }
 
     public boolean isOppositeFigureOnDeckCell(int deckCell, Position position) {
-        Map<Integer, Figure> positions = chessPositionsStorage.getPositionsContainer();
+        Map<Integer, Figure> positions = ChessPositionsStorage.getGlobalStorage().getPositionsContainer();
         Figure figure = positions.get(deckCell);
         return (figure != null) && (figure.getPosition() != position);
     }
 
     public List<Integer> getAllAvailableSiteMovements(Position position) {
-        Map<Integer, Figure> positions = chessPositionsStorage.getPositionsContainer();
+        Map<Integer, Figure> positions = ChessPositionsStorage.getGlobalStorage().getPositionsContainer();
         return positions.entrySet()
                 .stream()
-                .filter(item -> !(item.getValue() instanceof King))
                 .filter(item -> item.getValue().getPosition().equals(position))
                 .flatMap(item -> item.getValue().getAllAvailableMovements(item.getKey()).stream())
                 .collect(Collectors.toList());
     }
 
+    public List<Integer> getAllOppositeSiteAttacks(Position oppositePosition) {
+        Map<Integer, Figure> positions = ChessPositionsStorage.getGlobalStorage().getPositionsContainer();
+        List<Integer> attacks = new ArrayList<>();
+        for (Map.Entry<Integer, Figure> entry : positions.entrySet()) {
+            Figure figure = entry.getValue();
+            if (figure.getPosition().equals(oppositePosition)) {
+                if (figure instanceof King) {
+                    attacks.addAll(new KingMove().getBasicMoves(entry.getKey(), figure));
+                } else if (figure instanceof Pawn) {
+                    int row = ChessUtils.getRow(entry.getKey());
+                    int col = ChessUtils.getCol(entry.getKey());
+                    int forwardDir = (figure.getPosition() == Position.WHITE) ? -1 : 1;
+                    int[] captureCols = {col - 1, col + 1};
+                    for (int nextCol : captureCols) {
+                        if (nextCol >= 0 && nextCol < 8) {
+                            int nextRow = row + forwardDir;
+                            if (nextRow >= 0 && nextRow < 8) {
+                                attacks.add(ChessUtils.getIndex(nextRow, nextCol));
+                            }
+                        }
+                    }
+                } else {
+                    attacks.addAll(figure.getAllAvailableMovements(entry.getKey()));
+                }
+            }
+        }
+        return attacks;
+    }
+
     public boolean isCheck(ChessPositionsStorage positionsStorage, Position position) {
-        Position pos;
-        if (position == Position.BLACK) {
-            pos = Position.WHITE;
-        } else {
-            pos = Position.BLACK;
+        Position oppositePosition = (position == Position.BLACK) ? Position.WHITE : Position.BLACK;
+        List<Integer> oppositeAttacks = getAllOppositeSiteAttacks(oppositePosition);
+
+        int kingIndex = (position == Position.BLACK) ? positionsStorage.getBlackKingIndex() : positionsStorage.getWhiteKingIndex();
+
+        return oppositeAttacks.contains(kingIndex);
+    }
+
+    public boolean isMoveLegal(int fromInd, int toInd, Position side) {
+        ChessPositionsStorage storage = ChessPositionsStorage.getGlobalStorage();
+        Map<Integer, Figure> currentPositions = storage.getPositionsContainer();
+
+        Figure movingFigure = currentPositions.get(fromInd);
+        Figure capturedFigure = currentPositions.get(toInd);
+
+        int oldWhiteKingIndex = storage.getWhiteKingIndex();
+        int oldBlackKingIndex = storage.getBlackKingIndex();
+
+        // Simulate move
+        currentPositions.remove(fromInd);
+        currentPositions.put(toInd, movingFigure);
+        if (movingFigure instanceof King) {
+            if (side == Position.WHITE) storage.setWhiteKingIndex(toInd);
+            else storage.setBlackKingIndex(toInd);
         }
-        List<Integer> positionsOppositeSite = positionsStorage.getPositionsContainer()
-                .entrySet()
-                .stream()
-                .filter(item -> item.getValue().getPosition().equals(pos))
-                .flatMap(item -> item.getValue().getAllAvailableMovements(item.getKey()).stream())
-                .peek(System.out::println)
-                .collect(Collectors.toList());
-        int kingIndex;
-        if (position == Position.BLACK) {
-            kingIndex = positionsStorage.getBlackKingIndex();
+
+        boolean isCheck = isCheck(storage, side);
+
+        // Revert move
+        currentPositions.put(fromInd, movingFigure);
+        if (capturedFigure != null) {
+            currentPositions.put(toInd, capturedFigure);
         } else {
-            kingIndex = positionsStorage.getWhiteKingIndex();
+            currentPositions.remove(toInd);
         }
-        return positionsOppositeSite.contains(kingIndex);
+        storage.setWhiteKingIndex(oldWhiteKingIndex);
+        storage.setBlackKingIndex(oldBlackKingIndex);
+
+        return !isCheck;
     }
 
     public void makeIndependentTurn(Map<Integer, Figure> positionsContainer, int fromInd, int toInd) {
         Figure figure = positionsContainer.get(fromInd);
-        positionsContainer.remove(toInd);
+        positionsContainer.remove(fromInd);
         positionsContainer.put(toInd, figure);
     }
 
     public void makeTurn(int fromInd, int toInd) {
-        Map<Integer, Figure> positionsContainer = chessPositionsStorage.getPositionsContainer();
+        ChessPositionsStorage storage = ChessPositionsStorage.getGlobalStorage();
+        Map<Integer, Figure> positionsContainer = storage.getPositionsContainer();
         Figure figure = positionsContainer.get(fromInd);
+
         DeckLayoutManager.getInstance().makeTurn(fromInd, toInd, figure);
 
-        positionsContainer.remove(toInd);
+        positionsContainer.remove(fromInd);
         positionsContainer.put(toInd, figure);
+
+        if (figure instanceof King) {
+            if (figure.getPosition() == Position.WHITE) storage.setWhiteKingIndex(toInd);
+            else storage.setBlackKingIndex(toInd);
+        }
     }
 }
