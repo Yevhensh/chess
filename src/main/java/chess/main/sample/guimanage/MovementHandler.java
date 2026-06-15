@@ -25,13 +25,11 @@ public class MovementHandler implements EventHandler<MouseEvent> {
         DeckLayoutManager layoutManager = DeckLayoutManager.getInstance();
         DeckManager deckManager = DeckManager.getInstance();
         Selected selected = null;
-        if (node instanceof Rectangle) {
+        if (node instanceof Rectangle rectangle) {
             // clicked on rectangle
-            Rectangle rectangle = (Rectangle) node;
             selected = layoutManager.getSelectedByDeckPosition((int) rectangle.getX(), (int) rectangle.getY());
-        } else if (node instanceof ImageView) {
+        } else if (node instanceof ImageView imageView) {
             // clicked on image
-            ImageView imageView = (ImageView) node;
             selected = layoutManager.getSelectedByDeckPosition((int) imageView.getX() - 9, (int) imageView.getY() - 9);
         }
 
@@ -45,19 +43,19 @@ public class MovementHandler implements EventHandler<MouseEvent> {
             int globalIndex = Selected.getGlobalIndex();
 
             // If clicking on another ally piece, change selection
-            if (selected.getSelected() != null && selected.getSelected().getPosition().equals(globalFigure.getPosition())) {
+            if (selected.selected() != null && selected.selected().getPosition().equals(globalFigure.getPosition())) {
                 layoutManager.unhighlightCell(globalIndex);
                 Selected.setGlobalSelected(selected);
-                layoutManager.highlightCell(selected.getIndex());
+                layoutManager.highlightCell(selected.index());
                 return;
             }
 
             List<Integer> globalSelectedMovements = globalFigure.getAllAvailableMovements(globalIndex);
 
-            if (globalSelectedMovements.contains(selected.getIndex())) {
-                if (deckManager.isMoveLegal(globalIndex, selected.getIndex(), globalFigure.getPosition())) {
+            if (globalSelectedMovements.contains(selected.index())) {
+                if (deckManager.isMoveLegal(globalIndex, selected.index(), globalFigure.getPosition())) {
                     layoutManager.unhighlightCell(globalIndex);
-                    deckManager.makeTurn(globalIndex, selected.getIndex());
+                    deckManager.makeTurn(globalIndex, selected.index());
                     TurnSwitcher.switchPosition();
                     Selected.emptyGlobalSelected();
                     updateStatus(deckManager);
@@ -69,9 +67,9 @@ public class MovementHandler implements EventHandler<MouseEvent> {
             // Selected.emptyGlobalSelected();
         } else {
             // selected figure correspond to actual site turn
-            if (selected.getSelected() != null && TurnSwitcher.getPosition().equals(selected.getSelected().getPosition())) {
+            if (selected.selected() != null && TurnSwitcher.getPosition().equals(selected.selected().getPosition())) {
                 Selected.setGlobalSelected(selected);
-                layoutManager.highlightCell(selected.getIndex());
+                layoutManager.highlightCell(selected.index());
             }
         }
     }

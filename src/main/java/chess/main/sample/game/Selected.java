@@ -2,7 +2,7 @@ package chess.main.sample.game;
 
 import chess.main.sample.figures.Figure;
 
-public class Selected {
+public record Selected(Figure selected, int index) {
     private static Figure globalSelected;
     private static int globalIndex;
 
@@ -11,8 +11,8 @@ public class Selected {
     }
 
     public static void setGlobalSelected(Selected selected) {
-        globalSelected = selected.getSelected();
-        globalIndex = selected.getIndex();
+        globalSelected = selected.selected();
+        globalIndex = selected.index();
     }
 
     public static int getGlobalIndex() {
@@ -30,29 +30,5 @@ public class Selected {
 
     public static boolean isGlobalSelected() {
         return globalSelected != null;
-    }
-
-    private Figure selected;
-    private int index;
-
-    public Selected(Figure selected, int index) {
-        this.selected = selected;
-        this.index = index;
-    }
-
-    public Figure getSelected() {
-        return selected;
-    }
-
-    public int getIndex() {
-        return index;
-    }
-
-    @Override
-    public String toString() {
-        return "Selected{" +
-                "selected=" + selected +
-                ", index=" + index +
-                '}';
     }
 }

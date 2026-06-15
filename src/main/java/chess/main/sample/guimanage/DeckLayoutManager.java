@@ -121,9 +121,8 @@ public class DeckLayoutManager {
     public void highlightCell(int index) {
         List<Node> nodes = cellNodes.get(index);
         if (nodes != null && !nodes.isEmpty()) {
-            Node node = nodes.get(0);
-            if (node instanceof Rectangle) {
-                ((Rectangle) node).setFill(Color.YELLOW);
+            if (nodes.get(0) instanceof Rectangle rectangle) {
+                rectangle.setFill(Color.YELLOW);
             }
         }
     }
@@ -131,9 +130,8 @@ public class DeckLayoutManager {
     public void unhighlightCell(int index) {
         List<Node> nodes = cellNodes.get(index);
         if (nodes != null && !nodes.isEmpty()) {
-            Node node = nodes.get(0);
-            if (node instanceof Rectangle) {
-                ((Rectangle) node).setFill(LayoutContainer.getLayoutColors().get(index));
+            if (nodes.get(0) instanceof Rectangle rectangle) {
+                rectangle.setFill(LayoutContainer.getLayoutColors().get(index));
             }
         }
     }
