@@ -17,10 +17,7 @@ import javafx.scene.shape.Rectangle;
 
 import java.io.FileInputStream;
 import java.io.FileNotFoundException;
-import java.util.Arrays;
-import java.util.List;
-import java.util.Map;
-import java.util.stream.IntStream;
+import java.util.*;
 
 import static chess.main.sample.constants.SceneConstants.*;
 
@@ -39,18 +36,16 @@ public class DeckLayoutManager {
     }
 
     private int shifter = 0;
+    private static Map<Integer, List<Node>> cellNodes = new HashMap<>();
 
     private static ChessPositionsStorage chessPositionsStorage = new ChessPositionsStorage();
-    private static LayoutChessPositionsStorage layoutChessPositionsStorage = LayoutChessPositionsStorage.getInstance();
 
     public void initializeBasicGameStart() {
         Map<Integer, Figure> positionsContainer = chessPositionsStorage.gameStartPositionRemind();
-        chessPositionsStorage = ChessPositionsStorage.getGlobalStorage();
         AnchorPane pane = new AnchorPane();
         LayoutContainer.setLayout(pane);
         LayoutContainer.getLayout().getChildren().add(createDeckBackgroundRectangle());
-        int xPosRec = START_FROM_BORDER_WIDTH;
-        int yPosRec = START_FROM_BORDER_WIDTH;
+
         for (int iteratorDeckRectangle = 0; iteratorDeckRectangle < CELLS_COUNT; iteratorDeckRectangle++) {
             Figure figure;
             if (positionsContainer.containsKey(iteratorDeckRectangle)) {
@@ -58,23 +53,14 @@ public class DeckLayoutManager {
             } else {
                 figure = new Empty();
             }
-            createDeckCellRectangle(iteratorDeckRectangle, xPosRec, yPosRec, figure);
-            if (isShiftTop(iteratorDeckRectangle)) {
-                yPosRec += RECTANGLE_DIMENSION;
-                xPosRec = 20;
-            } else {
-                // shift right
-                xPosRec += RECTANGLE_DIMENSION;
-            }
-        }
-        for (int i = 0; i < LayoutContainer.getLayout().getChildren().size(); i++) {
-            System.out.println(LayoutContainer.getLayout().getChildren().get(i) + "   i:" + i);
-        }
 
-        LayoutChessPositionsStorage.getInstance()
-                .getLayoutPositionsContainer()
-                .entrySet()
-                .forEach(item -> System.out.println(item.getKey() + ": " + item.getValue()));
+            int row = iteratorDeckRectangle / 8;
+            int col = iteratorDeckRectangle % 8;
+            int xPosRec = START_FROM_BORDER_WIDTH + col * RECTANGLE_DIMENSION;
+            int yPosRec = START_FROM_BORDER_WIDTH + row * RECTANGLE_DIMENSION;
+
+            createDeckCellRectangle(iteratorDeckRectangle, xPosRec, yPosRec, figure);
+        }
     }
 
     private Rectangle createDeckBackgroundRectangle() {
@@ -83,40 +69,31 @@ public class DeckLayoutManager {
     }
 
     private void createDeckCellRectangle(int iterator, int x, int y, Figure figure) {
-        if (iterator % 8 == 0) {
-            if (shifter == 0) {
-                shifter = 1;
-            } else {
-                shifter = 0;
-            }
-        }
-        int shiftedIterator = iterator + shifter;
+        int row = iterator / 8;
+        int col = iterator % 8;
         Color cellColor;
-        if (isOdd(shiftedIterator)) {
+        if ((row + col) % 2 != 0) {
             cellColor = Color.DARKGREEN;
         } else {
             cellColor = Color.GREY;
         }
         LayoutContainer.addLayoutColor(cellColor);
-        renderChessRow(cellColor, x, y, figure);
+        renderChessRow(iterator, cellColor, x, y, figure);
     }
 
-    private boolean isOdd(int value) {
-        return (value % 2 != 0);
-    }
+    private void renderChessRow(int index, Color color, int positionX, int positionY, Figure figure) {
+        List<Node> nodes = new ArrayList<>();
 
-    private boolean isShiftTop(int iterator) {
-        return ((iterator + 1) % 8 == 0);
-    }
-
-    private void renderChessRow(Color color, int positionX, int positionY, Figure figure) {
         Rectangle rectangle = new Rectangle(positionX, positionY, RECTANGLE_DIMENSION, RECTANGLE_DIMENSION);
         rectangle.setFill(color);
+        rectangle.setX(positionX); // Added explicit X/Y
+        rectangle.setY(positionY);
         rectangle.setOnMouseClicked(new MovementHandler());
         LayoutContainer.getLayout().getChildren().add(rectangle);
+        nodes.add(rectangle);
 
         String picturePath = figure.getFilenamePath();
-        if (picturePath != "empty") {
+        if (!(figure instanceof Empty)) {
             Image image = null;
             try {
                 image = new Image(new FileInputStream(picturePath));
@@ -130,81 +107,48 @@ public class DeckLayoutManager {
             imageView.setFitHeight(IMAGE_DIMENSION);
             imageView.setPreserveRatio(true);
             imageView.setOnMouseClicked(new MovementHandler());
-            Group root = new Group(imageView);
-            LayoutContainer.getLayout().getChildren().add(root);
+            LayoutContainer.getLayout().getChildren().add(imageView);
+            nodes.add(imageView);
         }
+        cellNodes.put(index, nodes);
     }
 
     public Selected getSelectedByDeckPosition(int x, int y) {
-        int row = (x - 20) / 70;
-        int column = (y - 20) / 70 * 8;
-        int deckCell = row + column;
+        int col = (x - START_FROM_BORDER_WIDTH) / RECTANGLE_DIMENSION;
+        int row = (y - START_FROM_BORDER_WIDTH) / RECTANGLE_DIMENSION;
+        int deckCell = row * 8 + col;
         return new Selected(ChessPositionsStorage.getGlobalStorage().getFigureByDeckCell(deckCell), deckCell);
     }
 
     public void makeTurn(int fromIndex, int toIndex, Figure figure) {
-        ChessPositionsStorage chessPositionsStorage = ChessPositionsStorage.getGlobalStorage();
-        Map<Integer, Integer> layoutPositionsContainer = layoutChessPositionsStorage.getLayoutPositionsContainer();
-        int layoutIndexFrom = layoutPositionsContainer.get(fromIndex);
-        int layoutIndexTo = layoutPositionsContainer.get(toIndex);
-        layoutPositionsContainer.remove(fromIndex);
-        layoutPositionsContainer.remove(toIndex);
-
-        List<Node> layoutList = LayoutContainer.getLayout().getChildren();
-        layoutList.remove(layoutIndexFrom);
-        layoutList.remove(layoutIndexFrom + 1);
-        if (DeckManager.getInstance().isEmptyDeckCell(toIndex)) {
-            layoutList.remove(layoutIndexTo);
-        } else {
-            layoutList.remove(layoutIndexTo);
-            layoutList.remove(layoutIndexTo + 1);
+        // Clear nodes at fromIndex
+        List<Node> fromNodes = cellNodes.get(fromIndex);
+        if (fromNodes != null) {
+            LayoutContainer.getLayout().getChildren().removeAll(fromNodes);
+            cellNodes.remove(fromIndex);
         }
 
-        shifting(layoutIndexFrom, toIndex, layoutPositionsContainer, layoutIndexTo);
+        // Clear nodes at toIndex
+        List<Node> toNodes = cellNodes.get(toIndex);
+        if (toNodes != null) {
+            LayoutContainer.getLayout().getChildren().removeAll(toNodes);
+            cellNodes.remove(toIndex);
+        }
 
-        int xFrom = (int) Math.floor(fromIndex / 8.0);
-        int yFrom = fromIndex % 8;
-        xFrom = 20 + xFrom * 70;
-        yFrom = 20 + yFrom * 70;
+        // Render Empty at fromIndex
+        int rowFrom = fromIndex / 8;
+        int colFrom = fromIndex % 8;
+        int xFrom = START_FROM_BORDER_WIDTH + colFrom * RECTANGLE_DIMENSION;
+        int yFrom = START_FROM_BORDER_WIDTH + rowFrom * RECTANGLE_DIMENSION;
         Color colorFrom = LayoutContainer.getLayoutColors().get(fromIndex);
-        renderChessRow(colorFrom, xFrom, yFrom, new Empty());
-        layoutPositionsContainer.put(fromIndex, layoutList.size() - 2);
+        renderChessRow(fromIndex, colorFrom, xFrom, yFrom, new Empty());
 
-        int xTo = (int) Math.floor(toIndex / 8.0);
-        int yTo = toIndex % 8;
-        xTo = 20 + xTo * 70;
-        yTo = 20 + yTo * 70;
+        // Render Figure at toIndex
+        int rowTo = toIndex / 8;
+        int colTo = toIndex % 8;
+        int xTo = START_FROM_BORDER_WIDTH + colTo * RECTANGLE_DIMENSION;
+        int yTo = START_FROM_BORDER_WIDTH + rowTo * RECTANGLE_DIMENSION;
         Color colorTo = LayoutContainer.getLayoutColors().get(toIndex);
-        renderChessRow(colorTo, xTo, yTo, figure);
-        layoutPositionsContainer.put(toIndex, layoutList.size() - 2);
-    }
-
-    /*
-    * shifting all FORWARD layout indexes back coz we dealing with Layout pane list
-    * */
-    private void shifting(int layoutIndexFrom, int toIndex, Map<Integer, Integer> layoutPositionsContainer,
-                          int layoutIndexTo) {
-        if (DeckManager.getInstance().isEmptyDeckCell(toIndex)) {
-            layoutPositionsContainer.entrySet()
-                    .stream()
-                    .filter(entry -> entry.getValue() > layoutIndexTo)
-                    .forEach(entry -> {
-                        layoutPositionsContainer.put(entry.getKey(), entry.getValue() - 1);
-                    });
-        } else {
-            layoutPositionsContainer.entrySet()
-                    .stream()
-                    .filter(entry -> entry.getValue() > layoutIndexTo)
-                    .forEach(entry -> {
-                        layoutPositionsContainer.put(entry.getKey(), entry.getValue() - 2);
-                    });
-        }
-
-        layoutPositionsContainer.entrySet()
-                .stream()
-                .filter(entry -> entry.getValue() > layoutIndexFrom)
-                .forEach(entry -> {
-                    layoutPositionsContainer.put(entry.getKey(), entry.getValue() - 2);
-                });
+        renderChessRow(toIndex, colorTo, xTo, yTo, figure);
     }
 }

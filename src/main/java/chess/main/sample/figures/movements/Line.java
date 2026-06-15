@@ -4,6 +4,7 @@ package chess.main.sample.figures.movements;
 import chess.main.sample.figures.Figure;
 import chess.main.sample.figures.Movement;
 import chess.main.sample.manage.DeckManager;
+import chess.main.sample.utils.ChessUtils;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -21,27 +22,31 @@ public class Line extends Movement {
     private List<Integer> getVerticalMoves(int deckCell, Figure figure) {
         DeckManager deckManager = DeckManager.getInstance();
         List<Integer> list = new ArrayList<>();
-        int upperIterator = deckCell + 8;
-        while (upperIterator < 64) {
-            if (!deckManager.isEmptyDeckCell(upperIterator)) {
-                if (deckManager.isOppositeFigureOnDeckCell(upperIterator, figure.getPosition())) {
-                    list.add(upperIterator);
+        int row = ChessUtils.getRow(deckCell);
+        int col = ChessUtils.getCol(deckCell);
+
+        // Down (towards higher row indices)
+        for (int r = row + 1; r < 8; r++) {
+            int nextIndex = ChessUtils.getIndex(r, col);
+            if (!deckManager.isEmptyDeckCell(nextIndex)) {
+                if (deckManager.isOppositeFigureOnDeckCell(nextIndex, figure.getPosition())) {
+                    list.add(nextIndex);
                 }
                 break;
             }
-            list.add(upperIterator);
-            upperIterator += 8;
+            list.add(nextIndex);
         }
-        int downIterator = deckCell - 8;
-        while (downIterator >= 0) {
-            if (!deckManager.isEmptyDeckCell(downIterator)) {
-                if (deckManager.isOppositeFigureOnDeckCell(downIterator, figure.getPosition())) {
-                    list.add(downIterator);
+
+        // Up (towards lower row indices)
+        for (int r = row - 1; r >= 0; r--) {
+            int nextIndex = ChessUtils.getIndex(r, col);
+            if (!deckManager.isEmptyDeckCell(nextIndex)) {
+                if (deckManager.isOppositeFigureOnDeckCell(nextIndex, figure.getPosition())) {
+                    list.add(nextIndex);
                 }
                 break;
             }
-            list.add(downIterator);
-            downIterator -= 8;
+            list.add(nextIndex);
         }
         return list;
     }
@@ -49,25 +54,31 @@ public class Line extends Movement {
     private List<Integer> getHorizontalMoves(int deckCell, Figure figure) {
         DeckManager deckManager = DeckManager.getInstance();
         List<Integer> list = new ArrayList<>();
-        int rightIterator = deckCell + 1;
-        while (rightIterator % 8 != 0 && rightIterator < 64) {
-            if (!deckManager.isEmptyDeckCell(rightIterator)) {
-                if (deckManager.isOppositeFigureOnDeckCell(rightIterator, figure.getPosition())) {
-                    list.add(rightIterator);
+        int row = ChessUtils.getRow(deckCell);
+        int col = ChessUtils.getCol(deckCell);
+
+        // Right
+        for (int c = col + 1; c < 8; c++) {
+            int nextIndex = ChessUtils.getIndex(row, c);
+            if (!deckManager.isEmptyDeckCell(nextIndex)) {
+                if (deckManager.isOppositeFigureOnDeckCell(nextIndex, figure.getPosition())) {
+                    list.add(nextIndex);
                 }
                 break;
             }
-            list.add(rightIterator++);
+            list.add(nextIndex);
         }
-        int leftIterator = deckCell - 1;
-        while (leftIterator % 8 != 0 && leftIterator >= 0) {
-            if (!deckManager.isEmptyDeckCell(leftIterator)) {
-                if (deckManager.isOppositeFigureOnDeckCell(leftIterator, figure.getPosition())) {
-                    list.add(leftIterator);
+
+        // Left
+        for (int c = col - 1; c >= 0; c--) {
+            int nextIndex = ChessUtils.getIndex(row, c);
+            if (!deckManager.isEmptyDeckCell(nextIndex)) {
+                if (deckManager.isOppositeFigureOnDeckCell(nextIndex, figure.getPosition())) {
+                    list.add(nextIndex);
                 }
                 break;
             }
-            list.add(leftIterator--);
+            list.add(nextIndex);
         }
         return list;
     }
