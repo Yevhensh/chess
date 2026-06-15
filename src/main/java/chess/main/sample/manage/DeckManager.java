@@ -144,4 +144,31 @@ public class DeckManager {
             else storage.setBlackKingIndex(toInd);
         }
     }
+
+    public boolean hasAnyLegalMoves(Position side) {
+        ChessPositionsStorage storage = ChessPositionsStorage.getGlobalStorage();
+        Map<Integer, Figure> currentPositions = new HashMap<>(storage.getPositionsContainer());
+
+        for (Map.Entry<Integer, Figure> entry : currentPositions.entrySet()) {
+            Figure figure = entry.getValue();
+            if (figure.getPosition() == side) {
+                int fromInd = entry.getKey();
+                List<Integer> possibleMoves = figure.getAllAvailableMovements(fromInd);
+                for (int toInd : possibleMoves) {
+                    if (isMoveLegal(fromInd, toInd, side)) {
+                        return true;
+                    }
+                }
+            }
+        }
+        return false;
+    }
+
+    public boolean isCheckmate(Position side) {
+        return isCheck(ChessPositionsStorage.getGlobalStorage(), side) && !hasAnyLegalMoves(side);
+    }
+
+    public boolean isStalemate(Position side) {
+        return !isCheck(ChessPositionsStorage.getGlobalStorage(), side) && !hasAnyLegalMoves(side);
+    }
 }
