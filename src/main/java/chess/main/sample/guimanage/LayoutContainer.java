@@ -1,5 +1,6 @@
 package chess.main.sample.guimanage;
 
+import javafx.scene.control.Label;
 import javafx.scene.layout.Pane;
 import javafx.scene.paint.Color;
 
@@ -10,6 +11,7 @@ public class LayoutContainer {
 
     private static Pane layout;
     private static List<Color> layoutColors = new ArrayList<>();
+    private static Label statusLabel;
 
     public static Pane getLayout() {
         return layout;
@@ -25,5 +27,13 @@ public class LayoutContainer {
 
     public static List<Color> getLayoutColors() {
         return layoutColors;
+    }
+
+    public static Label getStatusLabel() {
+        return statusLabel;
+    }
+
+    public static void setStatusLabel(Label statusLabel) {
+        LayoutContainer.statusLabel = statusLabel;
     }
 }

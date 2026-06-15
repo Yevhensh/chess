@@ -9,11 +9,13 @@ import chess.main.sample.storage.ChessPositionsStorage;
 import chess.main.sample.storage.LayoutChessPositionsStorage;
 import javafx.scene.Group;
 import javafx.scene.Node;
+import javafx.scene.control.Label;
 import javafx.scene.image.Image;
 import javafx.scene.image.ImageView;
 import javafx.scene.layout.AnchorPane;
 import javafx.scene.paint.Color;
 import javafx.scene.shape.Rectangle;
+import javafx.scene.text.Font;
 
 import java.io.FileInputStream;
 import java.io.FileNotFoundException;
@@ -45,6 +47,13 @@ public class DeckLayoutManager {
         AnchorPane pane = new AnchorPane();
         LayoutContainer.setLayout(pane);
         LayoutContainer.getLayout().getChildren().add(createDeckBackgroundRectangle());
+
+        Label statusLabel = new Label("White's turn");
+        statusLabel.setLayoutX(START_FROM_BORDER_WIDTH);
+        statusLabel.setLayoutY(START_FROM_BORDER_WIDTH + RECTANGLE_DIMENSION * ROWS_COUNT + 10);
+        statusLabel.setFont(new Font("Arial", 20));
+        LayoutContainer.setStatusLabel(statusLabel);
+        LayoutContainer.getLayout().getChildren().add(statusLabel);
 
         for (int iteratorDeckRectangle = 0; iteratorDeckRectangle < CELLS_COUNT; iteratorDeckRectangle++) {
             Figure figure;
@@ -107,6 +116,26 @@ public class DeckLayoutManager {
             nodes.add(imageView);
         }
         cellNodes.put(index, nodes);
+    }
+
+    public void highlightCell(int index) {
+        List<Node> nodes = cellNodes.get(index);
+        if (nodes != null && !nodes.isEmpty()) {
+            Node node = nodes.get(0);
+            if (node instanceof Rectangle) {
+                ((Rectangle) node).setFill(Color.YELLOW);
+            }
+        }
+    }
+
+    public void unhighlightCell(int index) {
+        List<Node> nodes = cellNodes.get(index);
+        if (nodes != null && !nodes.isEmpty()) {
+            Node node = nodes.get(0);
+            if (node instanceof Rectangle) {
+                ((Rectangle) node).setFill(LayoutContainer.getLayoutColors().get(index));
+            }
+        }
     }
 
     public Selected getSelectedByDeckPosition(int x, int y) {

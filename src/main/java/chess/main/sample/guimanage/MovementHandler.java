@@ -2,12 +2,14 @@ package chess.main.sample.guimanage;
 
 
 import chess.main.sample.figures.Figure;
+import chess.main.sample.figures.Position;
 import chess.main.sample.game.Selected;
 import chess.main.sample.game.TurnSwitcher;
 import chess.main.sample.manage.DeckManager;
 import chess.main.sample.storage.ChessPositionsStorage;
 import javafx.event.EventHandler;
 import javafx.scene.Node;
+import javafx.scene.control.Label;
 import javafx.scene.image.ImageView;
 import javafx.scene.input.MouseEvent;
 import javafx.scene.shape.Rectangle;
@@ -44,7 +46,9 @@ public class MovementHandler implements EventHandler<MouseEvent> {
 
             // If clicking on another ally piece, change selection
             if (selected.getSelected() != null && selected.getSelected().getPosition().equals(globalFigure.getPosition())) {
+                layoutManager.unhighlightCell(globalIndex);
                 Selected.setGlobalSelected(selected);
+                layoutManager.highlightCell(selected.getIndex());
                 return;
             }
 
@@ -52,9 +56,11 @@ public class MovementHandler implements EventHandler<MouseEvent> {
 
             if (globalSelectedMovements.contains(selected.getIndex())) {
                 if (deckManager.isMoveLegal(globalIndex, selected.getIndex(), globalFigure.getPosition())) {
+                    layoutManager.unhighlightCell(globalIndex);
                     deckManager.makeTurn(globalIndex, selected.getIndex());
                     TurnSwitcher.switchPosition();
                     Selected.emptyGlobalSelected();
+                    updateStatus(deckManager);
                 } else {
                     System.out.println("Move is illegal (King in check)");
                 }
@@ -65,7 +71,26 @@ public class MovementHandler implements EventHandler<MouseEvent> {
             // selected figure correspond to actual site turn
             if (selected.getSelected() != null && TurnSwitcher.getPosition().equals(selected.getSelected().getPosition())) {
                 Selected.setGlobalSelected(selected);
+                layoutManager.highlightCell(selected.getIndex());
             }
         }
+    }
+
+    private void updateStatus(DeckManager deckManager) {
+        Position currentSide = TurnSwitcher.getPosition();
+        Label statusLabel = LayoutContainer.getStatusLabel();
+        if (statusLabel == null) return;
+
+        String status = (currentSide == Position.WHITE ? "White" : "Black") + "'s turn";
+
+        if (deckManager.isCheckmate(currentSide)) {
+            status = "Checkmate! " + (currentSide == Position.WHITE ? "Black" : "White") + " wins!";
+        } else if (deckManager.isStalemate(currentSide)) {
+            status = "Stalemate! Draw.";
+        } else if (deckManager.isCheck(ChessPositionsStorage.getGlobalStorage(), currentSide)) {
+            status += " - Check!";
+        }
+
+        statusLabel.setText(status);
     }
 }
