@@ -97,7 +97,7 @@ public class DeckLayoutManager {
         rectangle.setFill(color);
         rectangle.setX(positionX); // Added explicit X/Y
         rectangle.setY(positionY);
-        rectangle.setOnMouseClicked(new MovementHandler());
+        rectangle.setOnMouseClicked(MovementHandler.INSTANCE);
         LayoutContainer.getLayout().getChildren().add(rectangle);
         nodes.add(rectangle);
 
@@ -111,7 +111,7 @@ public class DeckLayoutManager {
             imageView.setFitWidth(IMAGE_DIMENSION);
             imageView.setFitHeight(IMAGE_DIMENSION);
             imageView.setPreserveRatio(true);
-            imageView.setOnMouseClicked(new MovementHandler());
+            imageView.setOnMouseClicked(MovementHandler.INSTANCE);
             LayoutContainer.getLayout().getChildren().add(imageView);
             nodes.add(imageView);
         }

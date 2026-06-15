@@ -1,6 +1,5 @@
 package chess.main.sample.guimanage;
 
-
 import chess.main.sample.figures.Figure;
 import chess.main.sample.figures.Position;
 import chess.main.sample.game.Selected;
@@ -16,79 +15,128 @@ import javafx.scene.shape.Rectangle;
 
 import java.util.List;
 
-
 public class MovementHandler implements EventHandler<MouseEvent> {
+
+    private static final int IMAGE_VIEW_OFFSET = 9;
+
+    public static final MovementHandler INSTANCE = new MovementHandler();
+
+    private final DeckLayoutManager layoutManager = DeckLayoutManager.getInstance();
+    private final DeckManager deckManager = DeckManager.getInstance();
+
+    private MovementHandler() {
+    }
 
     @Override
     public void handle(MouseEvent event) {
-        Node node = (Node) event.getTarget();
-        DeckLayoutManager layoutManager = DeckLayoutManager.getInstance();
-        DeckManager deckManager = DeckManager.getInstance();
-        Selected selected = null;
-        if (node instanceof Rectangle rectangle) {
-            // clicked on rectangle
-            selected = layoutManager.getSelectedByDeckPosition((int) rectangle.getX(), (int) rectangle.getY());
-        } else if (node instanceof ImageView imageView) {
-            // clicked on image
-            selected = layoutManager.getSelectedByDeckPosition((int) imageView.getX() - 9, (int) imageView.getY() - 9);
+        Selected clicked = resolveClickedSelection((Node) event.getTarget());
+        if (clicked == null) {
+            return;
         }
 
-        if (selected == null) return;
-
-        System.out.println(selected);
-
-        // check whether selected is prev selected
         if (Selected.isGlobalSelected()) {
-            Figure globalFigure = Selected.getGlobalSelected();
-            int globalIndex = Selected.getGlobalIndex();
-
-            // If clicking on another ally piece, change selection
-            if (selected.selected() != null && selected.selected().getPosition().equals(globalFigure.getPosition())) {
-                layoutManager.unhighlightCell(globalIndex);
-                Selected.setGlobalSelected(selected);
-                layoutManager.highlightCell(selected.index());
-                return;
-            }
-
-            List<Integer> globalSelectedMovements = globalFigure.getAllAvailableMovements(globalIndex);
-
-            if (globalSelectedMovements.contains(selected.index())) {
-                if (deckManager.isMoveLegal(globalIndex, selected.index(), globalFigure.getPosition())) {
-                    layoutManager.unhighlightCell(globalIndex);
-                    deckManager.makeTurn(globalIndex, selected.index());
-                    TurnSwitcher.switchPosition();
-                    Selected.emptyGlobalSelected();
-                    updateStatus(deckManager);
-                } else {
-                    System.out.println("Move is illegal (King in check)");
-                }
-            }
-            // Optional: don't empty selection if clicked on invalid square (not ally, not valid move)
-            // Selected.emptyGlobalSelected();
+            handleExistingSelection(clicked);
         } else {
-            // selected figure correspond to actual site turn
-            if (selected.selected() != null && TurnSwitcher.getPosition().equals(selected.selected().getPosition())) {
-                Selected.setGlobalSelected(selected);
-                layoutManager.highlightCell(selected.index());
-            }
+            handleInitialSelection(clicked);
         }
     }
 
-    private void updateStatus(DeckManager deckManager) {
-        Position currentSide = TurnSwitcher.getPosition();
-        Label statusLabel = LayoutContainer.getStatusLabel();
-        if (statusLabel == null) return;
+    private Selected resolveClickedSelection(Node node) {
+        if (node instanceof Rectangle rectangle) {
+            return layoutManager.getSelectedByDeckPosition((int) rectangle.getX(), (int) rectangle.getY());
+        }
+        if (node instanceof ImageView imageView) {
+            return layoutManager.getSelectedByDeckPosition(
+                    (int) imageView.getX() - IMAGE_VIEW_OFFSET,
+                    (int) imageView.getY() - IMAGE_VIEW_OFFSET
+            );
+        }
+        return null;
+    }
 
-        String status = (currentSide == Position.WHITE ? "White" : "Black") + "'s turn";
+    private void handleExistingSelection(Selected clicked) {
+        Figure selectedFigure = Selected.getGlobalSelected();
+        int fromIndex = Selected.getGlobalIndex();
 
-        if (deckManager.isCheckmate(currentSide)) {
-            status = "Checkmate! " + (currentSide == Position.WHITE ? "Black" : "White") + " wins!";
-        } else if (deckManager.isStalemate(currentSide)) {
-            status = "Stalemate! Draw.";
-        } else if (deckManager.isCheck(ChessPositionsStorage.getGlobalStorage(), currentSide)) {
-            status += " - Check!";
+        if (isAllyPiece(clicked, selectedFigure)) {
+            selectPiece(clicked);
+            return;
         }
 
-        statusLabel.setText(status);
+        if (isValidMoveTarget(clicked, selectedFigure, fromIndex)) {
+            executeMove(clicked, fromIndex, selectedFigure);
+        }
+    }
+
+    private void handleInitialSelection(Selected clicked) {
+        Figure clickedFigure = clicked.selected();
+        if (clickedFigure != null && isCurrentTurn(clickedFigure)) {
+            selectPiece(clicked);
+        }
+    }
+
+    private boolean isAllyPiece(Selected clicked, Figure selectedFigure) {
+        Figure clickedFigure = clicked.selected();
+        return clickedFigure != null && clickedFigure.getPosition().equals(selectedFigure.getPosition());
+    }
+
+    private boolean isCurrentTurn(Figure figure) {
+        return TurnSwitcher.getPosition().equals(figure.getPosition());
+    }
+
+    private boolean isValidMoveTarget(Selected clicked, Figure selectedFigure, int fromIndex) {
+        List<Integer> availableMoves = selectedFigure.getAllAvailableMovements(fromIndex);
+        return availableMoves.contains(clicked.index());
+    }
+
+    private void selectPiece(Selected selected) {
+        if (Selected.isGlobalSelected()) {
+            layoutManager.unhighlightCell(Selected.getGlobalIndex());
+        }
+        Selected.setGlobalSelected(selected);
+        layoutManager.highlightCell(selected.index());
+    }
+
+    private void executeMove(Selected clicked, int fromIndex, Figure selectedFigure) {
+        if (!deckManager.isMoveLegal(fromIndex, clicked.index(), selectedFigure.getPosition())) {
+            return;
+        }
+
+        layoutManager.unhighlightCell(fromIndex);
+        deckManager.makeTurn(fromIndex, clicked.index());
+        TurnSwitcher.switchPosition();
+        Selected.emptyGlobalSelected();
+        updateStatus();
+    }
+
+    private void updateStatus() {
+        Label statusLabel = LayoutContainer.getStatusLabel();
+        if (statusLabel == null) {
+            return;
+        }
+        statusLabel.setText(buildStatusMessage(TurnSwitcher.getPosition()));
+    }
+
+    private String buildStatusMessage(Position currentSide) {
+        if (deckManager.isCheckmate(currentSide)) {
+            return "Checkmate! " + sideName(oppositeSide(currentSide)) + " wins!";
+        }
+        if (deckManager.isStalemate(currentSide)) {
+            return "Stalemate! Draw.";
+        }
+
+        String status = sideName(currentSide) + "'s turn";
+        if (deckManager.isCheck(ChessPositionsStorage.getGlobalStorage(), currentSide)) {
+            status += " - Check!";
+        }
+        return status;
+    }
+
+    private Position oppositeSide(Position side) {
+        return side == Position.WHITE ? Position.BLACK : Position.WHITE;
+    }
+
+    private String sideName(Position side) {
+        return side == Position.WHITE ? "White" : "Black";
     }
 }
