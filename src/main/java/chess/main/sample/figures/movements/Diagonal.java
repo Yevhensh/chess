@@ -11,7 +11,7 @@ import java.util.List;
 public class Diagonal extends Movement {
 
     @Override
-    public List<Integer> determineAvailableMovements(int deckCell, Figure figure) {
+    public List<Integer> determineAvailableMovements(java.util.Map<Integer, Figure> positions, int deckCell, Figure figure) {
         List<Integer> allAvailableMoves = new ArrayList<>();
         DeckManager deckManager = DeckManager.getInstance();
         int row = ChessUtils.getRow(deckCell);
@@ -24,8 +24,8 @@ public class Diagonal extends Movement {
             int nextCol = col + dir[1];
             while (ChessUtils.isValid(nextRow, nextCol)) {
                 int nextIndex = ChessUtils.getIndex(nextRow, nextCol);
-                if (!deckManager.isEmptyDeckCell(nextIndex)) {
-                    if (deckManager.isOppositeFigureOnDeckCell(nextIndex, figure.getPosition())) {
+                if (!deckManager.isEmptyDeckCell(positions, nextIndex)) {
+                    if (deckManager.isOppositeFigureOnDeckCell(positions, nextIndex, figure.getPosition())) {
                         allAvailableMoves.add(nextIndex);
                     }
                     break;

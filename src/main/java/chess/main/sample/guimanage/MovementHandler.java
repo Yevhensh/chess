@@ -41,17 +41,26 @@ public class MovementHandler implements EventHandler<MouseEvent> {
         if (Selected.isGlobalSelected()) {
             Figure globalFigure = Selected.getGlobalSelected();
             int globalIndex = Selected.getGlobalIndex();
+
+            // If clicking on another ally piece, change selection
+            if (selected.getSelected() != null && selected.getSelected().getPosition().equals(globalFigure.getPosition())) {
+                Selected.setGlobalSelected(selected);
+                return;
+            }
+
             List<Integer> globalSelectedMovements = globalFigure.getAllAvailableMovements(globalIndex);
 
             if (globalSelectedMovements.contains(selected.getIndex())) {
                 if (deckManager.isMoveLegal(globalIndex, selected.getIndex(), globalFigure.getPosition())) {
                     deckManager.makeTurn(globalIndex, selected.getIndex());
                     TurnSwitcher.switchPosition();
+                    Selected.emptyGlobalSelected();
                 } else {
                     System.out.println("Move is illegal (King in check)");
                 }
             }
-            Selected.emptyGlobalSelected();
+            // Optional: don't empty selection if clicked on invalid square (not ally, not valid move)
+            // Selected.emptyGlobalSelected();
         } else {
             // selected figure correspond to actual site turn
             if (selected.getSelected() != null && TurnSwitcher.getPosition().equals(selected.getSelected().getPosition())) {

@@ -10,7 +10,7 @@ import java.util.List;
 
 public class PawnMove extends Movement {
     @Override
-    public List<Integer> determineAvailableMovements(int deckCell, Figure figure) {
+    public List<Integer> determineAvailableMovements(java.util.Map<Integer, Figure> positions, int deckCell, Figure figure) {
         List<Integer> availableMovesList = new ArrayList<>();
         int row = ChessUtils.getRow(deckCell);
         int col = ChessUtils.getCol(deckCell);
@@ -21,14 +21,14 @@ public class PawnMove extends Movement {
         int nextRow = row + forwardDir;
         if (nextRow >= 0 && nextRow < 8) {
             int upMove = ChessUtils.getIndex(nextRow, col);
-            if (DeckManager.getInstance().isEmptyDeckCell(upMove)) {
+            if (DeckManager.getInstance().isEmptyDeckCell(positions, upMove)) {
                 availableMovesList.add(upMove);
 
                 // Double move from start
                 if (isOnStartRow(row, figure)) {
                     int upUpRow = row + 2 * forwardDir;
                     int upUpMove = ChessUtils.getIndex(upUpRow, col);
-                    if (DeckManager.getInstance().isEmptyDeckCell(upUpMove)) {
+                    if (DeckManager.getInstance().isEmptyDeckCell(positions, upUpMove)) {
                         availableMovesList.add(upUpMove);
                     }
                 }
@@ -42,7 +42,7 @@ public class PawnMove extends Movement {
                 int captureRow = row + forwardDir;
                 if (captureRow >= 0 && captureRow < 8) {
                     int captureIndex = ChessUtils.getIndex(captureRow, nextCol);
-                    if (DeckManager.getInstance().isOppositeFigureOnDeckCell(captureIndex, figure.getPosition())) {
+                    if (DeckManager.getInstance().isOppositeFigureOnDeckCell(positions, captureIndex, figure.getPosition())) {
                         availableMovesList.add(captureIndex);
                     }
                 }

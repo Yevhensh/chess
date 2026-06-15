@@ -21,11 +21,16 @@ public class Queen extends Figure {
 
     @Override
     public List<Integer> getAllAvailableMovements(int deckCell) {
+        return getAllAvailableMovements(chess.main.sample.storage.ChessPositionsStorage.getGlobalStorage().getPositionsContainer(), deckCell);
+    }
+
+    @Override
+    public List<Integer> getAllAvailableMovements(java.util.Map<Integer, Figure> positions, int deckCell) {
         List<Integer> availableMovements = new ArrayList<>();
         Diagonal diagonalMove = new Diagonal();
         Line lineMove = new Line();
-        availableMovements.addAll(diagonalMove.determineAvailableMovements(deckCell, this));
-        availableMovements.addAll(lineMove.determineAvailableMovements(deckCell, this));
+        availableMovements.addAll(diagonalMove.determineAvailableMovements(positions, deckCell, this));
+        availableMovements.addAll(lineMove.determineAvailableMovements(positions, deckCell, this));
         return availableMovements;
     }
 

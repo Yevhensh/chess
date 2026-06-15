@@ -12,14 +12,14 @@ import java.util.List;
 public class Line extends Movement {
 
     @Override
-    public List<Integer> determineAvailableMovements(int deckCell, Figure figure) {
+    public List<Integer> determineAvailableMovements(java.util.Map<Integer, Figure> positions, int deckCell, Figure figure) {
         List<Integer> allExistingMoves = new ArrayList<>();
-        allExistingMoves.addAll(getHorizontalMoves(deckCell, figure));
-        allExistingMoves.addAll(getVerticalMoves(deckCell, figure));
+        allExistingMoves.addAll(getHorizontalMoves(positions, deckCell, figure));
+        allExistingMoves.addAll(getVerticalMoves(positions, deckCell, figure));
         return allExistingMoves;
     }
 
-    private List<Integer> getVerticalMoves(int deckCell, Figure figure) {
+    private List<Integer> getVerticalMoves(java.util.Map<Integer, Figure> positions, int deckCell, Figure figure) {
         DeckManager deckManager = DeckManager.getInstance();
         List<Integer> list = new ArrayList<>();
         int row = ChessUtils.getRow(deckCell);
@@ -28,8 +28,8 @@ public class Line extends Movement {
         // Down (towards higher row indices)
         for (int r = row + 1; r < 8; r++) {
             int nextIndex = ChessUtils.getIndex(r, col);
-            if (!deckManager.isEmptyDeckCell(nextIndex)) {
-                if (deckManager.isOppositeFigureOnDeckCell(nextIndex, figure.getPosition())) {
+            if (!deckManager.isEmptyDeckCell(positions, nextIndex)) {
+                if (deckManager.isOppositeFigureOnDeckCell(positions, nextIndex, figure.getPosition())) {
                     list.add(nextIndex);
                 }
                 break;
@@ -40,8 +40,8 @@ public class Line extends Movement {
         // Up (towards lower row indices)
         for (int r = row - 1; r >= 0; r--) {
             int nextIndex = ChessUtils.getIndex(r, col);
-            if (!deckManager.isEmptyDeckCell(nextIndex)) {
-                if (deckManager.isOppositeFigureOnDeckCell(nextIndex, figure.getPosition())) {
+            if (!deckManager.isEmptyDeckCell(positions, nextIndex)) {
+                if (deckManager.isOppositeFigureOnDeckCell(positions, nextIndex, figure.getPosition())) {
                     list.add(nextIndex);
                 }
                 break;
@@ -51,7 +51,7 @@ public class Line extends Movement {
         return list;
     }
 
-    private List<Integer> getHorizontalMoves(int deckCell, Figure figure) {
+    private List<Integer> getHorizontalMoves(java.util.Map<Integer, Figure> positions, int deckCell, Figure figure) {
         DeckManager deckManager = DeckManager.getInstance();
         List<Integer> list = new ArrayList<>();
         int row = ChessUtils.getRow(deckCell);
@@ -60,8 +60,8 @@ public class Line extends Movement {
         // Right
         for (int c = col + 1; c < 8; c++) {
             int nextIndex = ChessUtils.getIndex(row, c);
-            if (!deckManager.isEmptyDeckCell(nextIndex)) {
-                if (deckManager.isOppositeFigureOnDeckCell(nextIndex, figure.getPosition())) {
+            if (!deckManager.isEmptyDeckCell(positions, nextIndex)) {
+                if (deckManager.isOppositeFigureOnDeckCell(positions, nextIndex, figure.getPosition())) {
                     list.add(nextIndex);
                 }
                 break;
@@ -72,8 +72,8 @@ public class Line extends Movement {
         // Left
         for (int c = col - 1; c >= 0; c--) {
             int nextIndex = ChessUtils.getIndex(row, c);
-            if (!deckManager.isEmptyDeckCell(nextIndex)) {
-                if (deckManager.isOppositeFigureOnDeckCell(nextIndex, figure.getPosition())) {
+            if (!deckManager.isEmptyDeckCell(positions, nextIndex)) {
+                if (deckManager.isOppositeFigureOnDeckCell(positions, nextIndex, figure.getPosition())) {
                     list.add(nextIndex);
                 }
                 break;

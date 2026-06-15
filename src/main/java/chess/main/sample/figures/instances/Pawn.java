@@ -19,8 +19,13 @@ public class Pawn extends Figure {
 
     @Override
     public List<Integer> getAllAvailableMovements(int deckCell) {
+        return getAllAvailableMovements(chess.main.sample.storage.ChessPositionsStorage.getGlobalStorage().getPositionsContainer(), deckCell);
+    }
+
+    @Override
+    public List<Integer> getAllAvailableMovements(java.util.Map<Integer, Figure> positions, int deckCell) {
         PawnMove movement = new PawnMove();
-        return movement.determineAvailableMovements(deckCell, this);
+        return movement.determineAvailableMovements(positions, deckCell, this);
     }
 
     @Override

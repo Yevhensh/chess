@@ -14,14 +14,14 @@ public abstract class Figure {
     }
 
     public String getFilenamePath() {
-        return String.format(basePathPrefix + "pictures/%s.png", getFileNaming());
+        return String.format("pictures/%s.png", getFileNaming());
     }
-    
-    private final String basePathPrefix = getClass().getClassLoader().getResource("").getPath();
 
     public abstract String getFileNaming();
 
     public abstract List<Integer> getAllAvailableMovements(int deckCell);
+
+    public abstract List<Integer> getAllAvailableMovements(java.util.Map<Integer, Figure> positions, int deckCell);
 
     public List<Integer> getPseudoLegalMovements(int deckCell) {
         return getAllAvailableMovements(deckCell);

@@ -32,23 +32,20 @@ public class DeckManager {
     private DeckManager() {
     }
 
-    public boolean isAllyFigureOnDeckCell(int deckCell, Position position) {
-        return (!isEmptyDeckCell(deckCell) && !isOppositeFigureOnDeckCell(deckCell, position));
+    public boolean isAllyFigureOnDeckCell(Map<Integer, Figure> positions, int deckCell, Position position) {
+        return (!isEmptyDeckCell(positions, deckCell) && !isOppositeFigureOnDeckCell(positions, deckCell, position));
     }
 
-    public boolean isEmptyDeckCell(int deckCell) {
-        Map<Integer, Figure> positions = ChessPositionsStorage.getGlobalStorage().getPositionsContainer();
+    public boolean isEmptyDeckCell(Map<Integer, Figure> positions, int deckCell) {
         return (positions.get(deckCell) == null);
     }
 
-    public boolean isOppositeFigureOnDeckCell(int deckCell, Position position) {
-        Map<Integer, Figure> positions = ChessPositionsStorage.getGlobalStorage().getPositionsContainer();
+    public boolean isOppositeFigureOnDeckCell(Map<Integer, Figure> positions, int deckCell, Position position) {
         Figure figure = positions.get(deckCell);
         return (figure != null) && (figure.getPosition() != position);
     }
 
-    public List<Integer> getAllAvailableSiteMovements(Position position) {
-        Map<Integer, Figure> positions = ChessPositionsStorage.getGlobalStorage().getPositionsContainer();
+    public List<Integer> getAllAvailableSiteMovements(Map<Integer, Figure> positions, Position position) {
         return positions.entrySet()
                 .stream()
                 .filter(item -> item.getValue().getPosition().equals(position))
@@ -56,14 +53,13 @@ public class DeckManager {
                 .collect(Collectors.toList());
     }
 
-    public List<Integer> getAllOppositeSiteAttacks(Position oppositePosition) {
-        Map<Integer, Figure> positions = ChessPositionsStorage.getGlobalStorage().getPositionsContainer();
+    public List<Integer> getAllOppositeSiteAttacks(Map<Integer, Figure> positions, Position oppositePosition) {
         List<Integer> attacks = new ArrayList<>();
         for (Map.Entry<Integer, Figure> entry : positions.entrySet()) {
             Figure figure = entry.getValue();
             if (figure.getPosition().equals(oppositePosition)) {
                 if (figure instanceof King) {
-                    attacks.addAll(new KingMove().getBasicMoves(entry.getKey(), figure));
+                    attacks.addAll(new KingMove().getBasicMoves(positions, entry.getKey(), figure));
                 } else if (figure instanceof Pawn) {
                     int row = ChessUtils.getRow(entry.getKey());
                     int col = ChessUtils.getCol(entry.getKey());
@@ -87,7 +83,7 @@ public class DeckManager {
 
     public boolean isCheck(ChessPositionsStorage positionsStorage, Position position) {
         Position oppositePosition = (position == Position.BLACK) ? Position.WHITE : Position.BLACK;
-        List<Integer> oppositeAttacks = getAllOppositeSiteAttacks(oppositePosition);
+        List<Integer> oppositeAttacks = getAllOppositeSiteAttacks(positionsStorage.getPositionsContainer(), oppositePosition);
 
         int kingIndex = (position == Position.BLACK) ? positionsStorage.getBlackKingIndex() : positionsStorage.getWhiteKingIndex();
 
