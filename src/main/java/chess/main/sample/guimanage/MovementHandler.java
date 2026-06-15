@@ -1,11 +1,11 @@
 package chess.main.sample.guimanage;
 
 
+import chess.main.sample.constants.SceneConstants;
 import chess.main.sample.figures.Figure;
 import chess.main.sample.game.Selected;
 import chess.main.sample.game.TurnSwitcher;
 import chess.main.sample.manage.DeckManager;
-import chess.main.sample.storage.ChessPositionsStorage;
 import javafx.event.EventHandler;
 import javafx.scene.Node;
 import javafx.scene.image.ImageView;
@@ -30,7 +30,10 @@ public class MovementHandler implements EventHandler<MouseEvent> {
         } else if (node instanceof ImageView) {
             // clicked on image
             ImageView imageView = (ImageView) node;
-            selected = layoutManager.getSelectedByDeckPosition((int) imageView.getX() - 9, (int) imageView.getY() - 9);
+            selected = layoutManager.getSelectedByDeckPosition(
+                (int) imageView.getX() - SceneConstants.IMAGE_OFFSET,
+                (int) imageView.getY() - SceneConstants.IMAGE_OFFSET
+            );
         }
 
         if (selected == null) return;

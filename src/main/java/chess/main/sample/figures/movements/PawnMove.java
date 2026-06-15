@@ -1,5 +1,6 @@
 package chess.main.sample.figures.movements;
 
+import chess.main.sample.constants.SceneConstants;
 import chess.main.sample.figures.Figure;
 import chess.main.sample.figures.Movement;
 import chess.main.sample.manage.DeckManager;
@@ -19,7 +20,7 @@ public class PawnMove extends Movement {
 
         // Front moves
         int nextRow = row + forwardDir;
-        if (nextRow >= 0 && nextRow < 8) {
+        if (ChessUtils.isValid(nextRow, col)) {
             int upMove = ChessUtils.getIndex(nextRow, col);
             if (DeckManager.getInstance().isEmptyDeckCell(upMove)) {
                 availableMovesList.add(upMove);
@@ -54,9 +55,9 @@ public class PawnMove extends Movement {
 
     private boolean isOnStartRow(int row, Figure figure) {
         if (figure.isWhite()) {
-            return row == 6;
+            return row == SceneConstants.WHITE_PAWN_START_ROW;
         } else {
-            return row == 1;
+            return row == SceneConstants.BLACK_PAWN_START_ROW;
         }
     }
 }

@@ -35,7 +35,6 @@ public class DeckLayoutManager {
     private DeckLayoutManager() {
     }
 
-    private int shifter = 0;
     private static Map<Integer, List<Node>> cellNodes = new HashMap<>();
 
     private static ChessPositionsStorage chessPositionsStorage = new ChessPositionsStorage();
@@ -54,8 +53,8 @@ public class DeckLayoutManager {
                 figure = new Empty();
             }
 
-            int row = iteratorDeckRectangle / 8;
-            int col = iteratorDeckRectangle % 8;
+            int row = iteratorDeckRectangle / COLUMNS_COUNT;
+            int col = iteratorDeckRectangle % COLUMNS_COUNT;
             int xPosRec = START_FROM_BORDER_WIDTH + col * RECTANGLE_DIMENSION;
             int yPosRec = START_FROM_BORDER_WIDTH + row * RECTANGLE_DIMENSION;
 
@@ -69,8 +68,8 @@ public class DeckLayoutManager {
     }
 
     private void createDeckCellRectangle(int iterator, int x, int y, Figure figure) {
-        int row = iterator / 8;
-        int col = iterator % 8;
+        int row = iterator / COLUMNS_COUNT;
+        int col = iterator % COLUMNS_COUNT;
         Color cellColor;
         if ((row + col) % 2 != 0) {
             cellColor = Color.DARKGREEN;
@@ -86,7 +85,7 @@ public class DeckLayoutManager {
 
         Rectangle rectangle = new Rectangle(positionX, positionY, RECTANGLE_DIMENSION, RECTANGLE_DIMENSION);
         rectangle.setFill(color);
-        rectangle.setX(positionX); // Added explicit X/Y
+        rectangle.setX(positionX);
         rectangle.setY(positionY);
         rectangle.setOnMouseClicked(new MovementHandler());
         LayoutContainer.getLayout().getChildren().add(rectangle);
@@ -101,8 +100,8 @@ public class DeckLayoutManager {
                 e.printStackTrace();
             }
             ImageView imageView = new ImageView(image);
-            imageView.setX(positionX + 9);
-            imageView.setY(positionY + 9);
+            imageView.setX(positionX + SceneConstants.IMAGE_OFFSET);
+            imageView.setY(positionY + SceneConstants.IMAGE_OFFSET);
             imageView.setFitWidth(IMAGE_DIMENSION);
             imageView.setFitHeight(IMAGE_DIMENSION);
             imageView.setPreserveRatio(true);
@@ -116,7 +115,7 @@ public class DeckLayoutManager {
     public Selected getSelectedByDeckPosition(int x, int y) {
         int col = (x - START_FROM_BORDER_WIDTH) / RECTANGLE_DIMENSION;
         int row = (y - START_FROM_BORDER_WIDTH) / RECTANGLE_DIMENSION;
-        int deckCell = row * 8 + col;
+        int deckCell = row * COLUMNS_COUNT + col;
         return new Selected(ChessPositionsStorage.getGlobalStorage().getFigureByDeckCell(deckCell), deckCell);
     }
 
@@ -136,16 +135,16 @@ public class DeckLayoutManager {
         }
 
         // Render Empty at fromIndex
-        int rowFrom = fromIndex / 8;
-        int colFrom = fromIndex % 8;
+        int rowFrom = fromIndex / COLUMNS_COUNT;
+        int colFrom = fromIndex % COLUMNS_COUNT;
         int xFrom = START_FROM_BORDER_WIDTH + colFrom * RECTANGLE_DIMENSION;
         int yFrom = START_FROM_BORDER_WIDTH + rowFrom * RECTANGLE_DIMENSION;
         Color colorFrom = LayoutContainer.getLayoutColors().get(fromIndex);
         renderChessRow(fromIndex, colorFrom, xFrom, yFrom, new Empty());
 
         // Render Figure at toIndex
-        int rowTo = toIndex / 8;
-        int colTo = toIndex % 8;
+        int rowTo = toIndex / COLUMNS_COUNT;
+        int colTo = toIndex % COLUMNS_COUNT;
         int xTo = START_FROM_BORDER_WIDTH + colTo * RECTANGLE_DIMENSION;
         int yTo = START_FROM_BORDER_WIDTH + rowTo * RECTANGLE_DIMENSION;
         Color colorTo = LayoutContainer.getLayoutColors().get(toIndex);
