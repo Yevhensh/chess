@@ -10,11 +10,11 @@ import chess.main.sample.guimanage.DeckLayoutManager;
 import chess.main.sample.storage.ChessPositionsStorage;
 import chess.main.sample.utils.ChessUtils;
 
-import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.stream.Collectors;
+import java.util.stream.IntStream;
 
 public class DeckManager {
 
@@ -54,31 +54,31 @@ public class DeckManager {
     }
 
     public List<Integer> getAllOppositeSiteAttacks(Map<Integer, Figure> positions, Position oppositePosition) {
-        List<Integer> attacks = new ArrayList<>();
-        for (Map.Entry<Integer, Figure> entry : positions.entrySet()) {
-            Figure figure = entry.getValue();
-            if (figure.getPosition().equals(oppositePosition)) {
-                switch (figure) {
-                    case King king -> attacks.addAll(new KingMove().getBasicMoves(positions, entry.getKey(), king));
-                    case Pawn pawn -> {
-                        int row = ChessUtils.getRow(entry.getKey());
-                        int col = ChessUtils.getCol(entry.getKey());
-                        int forwardDir = (pawn.getPosition() == Position.WHITE) ? -1 : 1;
-                        int[] captureCols = {col - 1, col + 1};
-                        for (int nextCol : captureCols) {
-                            if (nextCol >= 0 && nextCol < 8) {
-                                int nextRow = row + forwardDir;
-                                if (nextRow >= 0 && nextRow < 8) {
-                                    attacks.add(ChessUtils.getIndex(nextRow, nextCol));
-                                }
-                            }
-                        }
-                    }
-                    default -> attacks.addAll(figure.getAllAvailableMovements(entry.getKey()));
-                }
-            }
-        }
-        return attacks;
+        return positions.entrySet().stream()
+                .filter(entry -> entry.getValue().getPosition().equals(oppositePosition))
+                .flatMap(entry -> getAttacksForFigure(positions, entry).stream())
+                .collect(Collectors.toList());
+    }
+
+    private List<Integer> getAttacksForFigure(Map<Integer, Figure> positions, Map.Entry<Integer, Figure> entry) {
+        Figure figure = entry.getValue();
+        return switch (figure) {
+            case King king -> new KingMove().getBasicMoves(positions, entry.getKey(), king);
+            case Pawn pawn -> getPawnAttacks(entry.getKey(), pawn);
+            default -> figure.getAllAvailableMovements(entry.getKey());
+        };
+    }
+
+    private List<Integer> getPawnAttacks(int deckCell, Pawn pawn) {
+        int row = ChessUtils.getRow(deckCell);
+        int col = ChessUtils.getCol(deckCell);
+        int forwardDir = pawn.getPosition() == Position.WHITE ? -1 : 1;
+
+        return IntStream.of(col - 1, col + 1)
+                .filter(nextCol -> ChessUtils.isValid(row + forwardDir, nextCol))
+                .map(nextCol -> ChessUtils.getIndex(row + forwardDir, nextCol))
+                .boxed()
+                .collect(Collectors.toList());
     }
 
     public boolean isCheck(ChessPositionsStorage positionsStorage, Position position) {
@@ -152,19 +152,13 @@ public class DeckManager {
         ChessPositionsStorage storage = ChessPositionsStorage.getGlobalStorage();
         Map<Integer, Figure> currentPositions = new HashMap<>(storage.getPositionsContainer());
 
-        for (Map.Entry<Integer, Figure> entry : currentPositions.entrySet()) {
-            Figure figure = entry.getValue();
-            if (figure.getPosition() == side) {
-                int fromInd = entry.getKey();
-                List<Integer> possibleMoves = figure.getAllAvailableMovements(fromInd);
-                for (int toInd : possibleMoves) {
-                    if (isMoveLegal(fromInd, toInd, side)) {
-                        return true;
-                    }
-                }
-            }
-        }
-        return false;
+        return currentPositions.entrySet().stream()
+                .filter(entry -> entry.getValue().getPosition() == side)
+                .anyMatch(entry -> {
+                    int fromInd = entry.getKey();
+                    return entry.getValue().getAllAvailableMovements(fromInd).stream()
+                            .anyMatch(toInd -> isMoveLegal(fromInd, toInd, side));
+                });
     }
 
     public boolean isCheckmate(Position side) {

@@ -1,9 +1,13 @@
 package chess.main.sample.storage;
 
-
-import chess.main.sample.figures.*;
+import chess.main.sample.figures.Figure;
 import chess.main.sample.figures.Position;
-import chess.main.sample.figures.instances.*;
+import chess.main.sample.figures.instances.Bishop;
+import chess.main.sample.figures.instances.King;
+import chess.main.sample.figures.instances.Knight;
+import chess.main.sample.figures.instances.Pawn;
+import chess.main.sample.figures.instances.Queen;
+import chess.main.sample.figures.instances.Rok;
 
 import java.util.HashMap;
 import java.util.Map;
@@ -11,7 +15,19 @@ import java.util.stream.IntStream;
 
 public class ChessPositionsStorage {
 
+    private static final int BLACK_BACK_RANK_START = 0;
+    private static final int BLACK_PAWNS_START = 8;
+    private static final int WHITE_PAWNS_START = 48;
+    private static final int WHITE_BACK_RANK_START = 56;
+    private static final int KING_BACK_RANK_OFFSET = 4;
+    private static final int PAWNS_PER_SIDE = 8;
+    private static final int BACK_RANK_SIZE = 8;
+
     private static ChessPositionsStorage globalStorage;
+
+    private Map<Integer, Figure> positionsContainer;
+    private int whiteKingIndex;
+    private int blackKingIndex;
 
     public static ChessPositionsStorage getGlobalStorage() {
         return globalStorage;
@@ -21,50 +37,16 @@ public class ChessPositionsStorage {
         globalStorage = chessPositionsStorage;
     }
 
-    private Map<Integer, Figure> positionsContainer;
-
-    private int whiteKingIndex;
-    private int blackKingIndex;
-
     public Map<Integer, Figure> gameStartPositionRemind() {
         positionsContainer = new HashMap<>();
-        int index = 0;
-        positionsContainer.put(index, new Rok(Position.BLACK));
-        positionsContainer.put(++index, new Knight(Position.BLACK));
-        positionsContainer.put(++index, new Bishop(Position.BLACK));
 
-        // Corrected: Queen on d8 (index 3), King on e8 (index 4)
-        positionsContainer.put(++index, new Queen(Position.BLACK));
-        positionsContainer.put(++index, new King(Position.BLACK));
-        setBlackKingIndex(index);
-
-        positionsContainer.put(++index, new Bishop(Position.BLACK));
-        positionsContainer.put(++index, new Knight(Position.BLACK));
-        positionsContainer.put(++index, new Rok(Position.BLACK));
-
-        IntStream.range(++index, index + 8)
-                .forEach(item -> positionsContainer.put(item, new Pawn(Position.BLACK)));
-
-        index = 48;
-        IntStream.range(index, index + 8)
-                .forEach(item -> positionsContainer.put(item, new Pawn(Position.WHITE)));
-
-        index = 56;
-        positionsContainer.put(index, new Rok(Position.WHITE));
-        positionsContainer.put(++index, new Knight(Position.WHITE));
-        positionsContainer.put(++index, new Bishop(Position.WHITE));
-
-        // Corrected: Queen on d1 (index 59), King on e1 (index 60)
-        positionsContainer.put(++index, new Queen(Position.WHITE));
-        positionsContainer.put(++index, new King(Position.WHITE));
-        setWhiteKingIndex(index);
-
-        positionsContainer.put(++index, new Bishop(Position.WHITE));
-        positionsContainer.put(++index, new Knight(Position.WHITE));
-        positionsContainer.put(++index, new Rok(Position.WHITE));
+        placeBackRank(Position.BLACK, BLACK_BACK_RANK_START);
+        placePawnRow(Position.BLACK, BLACK_PAWNS_START);
+        placePawnRow(Position.WHITE, WHITE_PAWNS_START);
+        placeBackRank(Position.WHITE, WHITE_BACK_RANK_START);
 
         LayoutChessPositionsStorage.getInstance().gameStartPositionsRemind(positionsContainer);
-        ChessPositionsStorage.setGlobalStorage(this);
+        setGlobalStorage(this);
         return positionsContainer;
     }
 
@@ -94,5 +76,39 @@ public class ChessPositionsStorage {
 
     public Figure getFigureByDeckCell(int deckCell) {
         return positionsContainer.get(deckCell);
+    }
+
+    private void placeBackRank(Position side, int startIndex) {
+        IntStream.range(0, BACK_RANK_SIZE).forEach(offset -> {
+            int index = startIndex + offset;
+            positionsContainer.put(index, createBackRankPiece(offset, side));
+            if (offset == KING_BACK_RANK_OFFSET) {
+                setKingIndex(side, index);
+            }
+        });
+    }
+
+    private void placePawnRow(Position side, int startIndex) {
+        IntStream.range(startIndex, startIndex + PAWNS_PER_SIDE)
+                .forEach(index -> positionsContainer.put(index, new Pawn(side)));
+    }
+
+    private Figure createBackRankPiece(int offset, Position side) {
+        return switch (offset) {
+            case 0, 7 -> new Rok(side);
+            case 1, 6 -> new Knight(side);
+            case 2, 5 -> new Bishop(side);
+            case 3 -> new Queen(side);
+            case 4 -> new King(side);
+            default -> throw new IllegalArgumentException("Invalid back rank offset: " + offset);
+        };
+    }
+
+    private void setKingIndex(Position side, int index) {
+        if (side == Position.WHITE) {
+            setWhiteKingIndex(index);
+        } else {
+            setBlackKingIndex(index);
+        }
     }
 }

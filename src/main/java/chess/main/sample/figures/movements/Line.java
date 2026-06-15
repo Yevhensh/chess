@@ -8,78 +8,64 @@ import chess.main.sample.utils.ChessUtils;
 
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Map;
+import java.util.function.IntUnaryOperator;
+import java.util.stream.Collectors;
+import java.util.stream.IntStream;
 
 public class Line extends Movement {
 
     @Override
-    public List<Integer> determineAvailableMovements(java.util.Map<Integer, Figure> positions, int deckCell, Figure figure) {
+    public List<Integer> determineAvailableMovements(Map<Integer, Figure> positions, int deckCell, Figure figure) {
         List<Integer> allExistingMoves = new ArrayList<>();
-        allExistingMoves.addAll(getHorizontalMoves(positions, deckCell, figure));
         allExistingMoves.addAll(getVerticalMoves(positions, deckCell, figure));
+        allExistingMoves.addAll(getHorizontalMoves(positions, deckCell, figure));
         return allExistingMoves;
     }
 
-    private List<Integer> getVerticalMoves(java.util.Map<Integer, Figure> positions, int deckCell, Figure figure) {
-        DeckManager deckManager = DeckManager.getInstance();
-        List<Integer> list = new ArrayList<>();
+    private List<Integer> getVerticalMoves(Map<Integer, Figure> positions, int deckCell, Figure figure) {
         int row = ChessUtils.getRow(deckCell);
         int col = ChessUtils.getCol(deckCell);
 
-        // Down (towards higher row indices)
-        for (int r = row + 1; r < 8; r++) {
-            int nextIndex = ChessUtils.getIndex(r, col);
-            if (!deckManager.isEmptyDeckCell(positions, nextIndex)) {
-                if (deckManager.isOppositeFigureOnDeckCell(positions, nextIndex, figure.getPosition())) {
-                    list.add(nextIndex);
-                }
-                break;
-            }
-            list.add(nextIndex);
-        }
-
-        // Up (towards lower row indices)
-        for (int r = row - 1; r >= 0; r--) {
-            int nextIndex = ChessUtils.getIndex(r, col);
-            if (!deckManager.isEmptyDeckCell(positions, nextIndex)) {
-                if (deckManager.isOppositeFigureOnDeckCell(positions, nextIndex, figure.getPosition())) {
-                    list.add(nextIndex);
-                }
-                break;
-            }
-            list.add(nextIndex);
-        }
-        return list;
+        List<Integer> moves = new ArrayList<>();
+        moves.addAll(collectSlidingMoves(positions, figure, IntStream.range(row + 1, 8), r -> ChessUtils.getIndex(r, col)));
+        moves.addAll(collectSlidingMoves(positions, figure, IntStream.iterate(row - 1, r -> r >= 0, r -> r - 1), r -> ChessUtils.getIndex(r, col)));
+        return moves;
     }
 
-    private List<Integer> getHorizontalMoves(java.util.Map<Integer, Figure> positions, int deckCell, Figure figure) {
-        DeckManager deckManager = DeckManager.getInstance();
-        List<Integer> list = new ArrayList<>();
+    private List<Integer> getHorizontalMoves(Map<Integer, Figure> positions, int deckCell, Figure figure) {
         int row = ChessUtils.getRow(deckCell);
         int col = ChessUtils.getCol(deckCell);
 
-        // Right
-        for (int c = col + 1; c < 8; c++) {
-            int nextIndex = ChessUtils.getIndex(row, c);
-            if (!deckManager.isEmptyDeckCell(positions, nextIndex)) {
-                if (deckManager.isOppositeFigureOnDeckCell(positions, nextIndex, figure.getPosition())) {
-                    list.add(nextIndex);
-                }
-                break;
+        List<Integer> moves = new ArrayList<>();
+        moves.addAll(collectSlidingMoves(positions, figure, IntStream.range(col + 1, 8), c -> ChessUtils.getIndex(row, c)));
+        moves.addAll(collectSlidingMoves(positions, figure, IntStream.iterate(col - 1, c -> c >= 0, c -> c - 1), c -> ChessUtils.getIndex(row, c)));
+        return moves;
+    }
+
+    private List<Integer> collectSlidingMoves(
+            Map<Integer, Figure> positions,
+            Figure figure,
+            IntStream coordinates,
+            IntUnaryOperator toDeckIndex) {
+        DeckManager deckManager = DeckManager.getInstance();
+        List<Integer> indices = coordinates.mapToObj(toDeckIndex::applyAsInt).collect(Collectors.toList());
+
+        long emptySquareCount = indices.stream()
+                .takeWhile(nextIndex -> deckManager.isEmptyDeckCell(positions, nextIndex))
+                .count();
+
+        List<Integer> moves = indices.stream()
+                .limit(emptySquareCount)
+                .collect(Collectors.toCollection(ArrayList::new));
+
+        if (emptySquareCount < indices.size()) {
+            int captureIndex = indices.get((int) emptySquareCount);
+            if (deckManager.isOppositeFigureOnDeckCell(positions, captureIndex, figure.getPosition())) {
+                moves.add(captureIndex);
             }
-            list.add(nextIndex);
         }
 
-        // Left
-        for (int c = col - 1; c >= 0; c--) {
-            int nextIndex = ChessUtils.getIndex(row, c);
-            if (!deckManager.isEmptyDeckCell(positions, nextIndex)) {
-                if (deckManager.isOppositeFigureOnDeckCell(positions, nextIndex, figure.getPosition())) {
-                    list.add(nextIndex);
-                }
-                break;
-            }
-            list.add(nextIndex);
-        }
-        return list;
+        return moves;
     }
 }

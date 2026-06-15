@@ -7,24 +7,25 @@ import chess.main.sample.utils.ChessUtils;
 
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Map;
+import java.util.stream.Collectors;
+import java.util.stream.IntStream;
 
 public class PawnMove extends Movement {
     @Override
-    public List<Integer> determineAvailableMovements(java.util.Map<Integer, Figure> positions, int deckCell, Figure figure) {
+    public List<Integer> determineAvailableMovements(Map<Integer, Figure> positions, int deckCell, Figure figure) {
         List<Integer> availableMovesList = new ArrayList<>();
         int row = ChessUtils.getRow(deckCell);
         int col = ChessUtils.getCol(deckCell);
 
         int forwardDir = figure.isWhite() ? -1 : 1;
 
-        // Front moves
         int nextRow = row + forwardDir;
-        if (nextRow >= 0 && nextRow < 8) {
+        if (ChessUtils.isValid(nextRow, col)) {
             int upMove = ChessUtils.getIndex(nextRow, col);
             if (DeckManager.getInstance().isEmptyDeckCell(positions, upMove)) {
                 availableMovesList.add(upMove);
 
-                // Double move from start
                 if (isOnStartRow(row, figure)) {
                     int upUpRow = row + 2 * forwardDir;
                     int upUpMove = ChessUtils.getIndex(upUpRow, col);
@@ -35,28 +36,19 @@ public class PawnMove extends Movement {
             }
         }
 
-        // Capture moves
-        int[] captureCols = {col - 1, col + 1};
-        for (int nextCol : captureCols) {
-            if (nextCol >= 0 && nextCol < 8) {
-                int captureRow = row + forwardDir;
-                if (captureRow >= 0 && captureRow < 8) {
-                    int captureIndex = ChessUtils.getIndex(captureRow, nextCol);
-                    if (DeckManager.getInstance().isOppositeFigureOnDeckCell(positions, captureIndex, figure.getPosition())) {
-                        availableMovesList.add(captureIndex);
-                    }
-                }
-            }
-        }
+        availableMovesList.addAll(
+                IntStream.of(col - 1, col + 1)
+                        .filter(nextCol -> ChessUtils.isValid(row + forwardDir, nextCol))
+                        .mapToObj(nextCol -> ChessUtils.getIndex(row + forwardDir, nextCol))
+                        .filter(captureIndex -> DeckManager.getInstance()
+                                .isOppositeFigureOnDeckCell(positions, captureIndex, figure.getPosition()))
+                        .collect(Collectors.toList())
+        );
 
         return availableMovesList;
     }
 
     private boolean isOnStartRow(int row, Figure figure) {
-        if (figure.isWhite()) {
-            return row == 6;
-        } else {
-            return row == 1;
-        }
+        return figure.isWhite() ? row == 6 : row == 1;
     }
 }
