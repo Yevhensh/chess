@@ -16,6 +16,13 @@ This document provides guidance for AI agents working on this project.
 - **Piece Instances**: Pieces are represented by classes in `chess.main.sample.figures.instances`.
 - **Movement Strategies**: Complex movement logic (Diagonal, Line, etc.) is encapsulated in classes in `chess.main.sample.figures.movements`.
 - **UI Management**: JavaFX UI components are managed by `DeckLayoutManager`. Do not modify the UI directly from logic classes.
+- **Java 21 Modernization**: Prefer using modern Java features where appropriate:
+    - **Records**: Use records for simple data-holding classes (e.g., `Selected`).
+    - **Pattern Matching**: Use pattern matching for `instanceof` and `switch` to simplify type checking and casting.
+    - **Switch Expressions**: Use switch expressions for concise value mapping (e.g., in `DeckManager.isCheck`).
+- **Game State Logic**:
+    - **Checkmate/Stalemate**: Always implement game end conditions by verifying the presence of legal moves (`hasAnyLegalMoves`) for the current side.
+    - **UI Status**: Update the global status label in `LayoutContainer` via `MovementHandler` after every successful move to reflect the current game state (turn, check, etc.).
 
 ## Testing Skills
 
