@@ -99,7 +99,12 @@ public class MovementHandler implements EventHandler<MouseEvent> {
         List<Integer> availableMoves = selected.selected().getAllAvailableMovements(selected.index());
         for (int moveIndex : availableMoves) {
             if (deckManager.isMoveLegal(selected.index(), moveIndex, selected.selected().getPosition())) {
-                layoutManager.highlightCell(moveIndex, javafx.scene.paint.Color.web("#f6f669", 0.5));
+                boolean isCapture = deckManager.isOppositeFigureOnDeckCell(
+                        chess.main.sample.storage.ChessPositionsStorage.getGlobalStorage().getPositionsContainer(),
+                        moveIndex,
+                        selected.selected().getPosition()
+                );
+                layoutManager.showMoveIndicator(moveIndex, isCapture);
             }
         }
     }
@@ -110,7 +115,7 @@ public class MovementHandler implements EventHandler<MouseEvent> {
             layoutManager.unhighlightCell(fromIndex);
             List<Integer> availableMoves = Selected.getGlobalSelected().getAllAvailableMovements(fromIndex);
             for (int moveIndex : availableMoves) {
-                layoutManager.unhighlightCell(moveIndex);
+                layoutManager.clearIndicators(moveIndex);
             }
         }
     }
@@ -141,7 +146,11 @@ public class MovementHandler implements EventHandler<MouseEvent> {
     }
 
     private String buildStatusMessage(Position currentSide) {
+        ChessPositionsStorage storage = ChessPositionsStorage.getGlobalStorage();
+        int kingIndex = currentSide == Position.WHITE ? storage.getWhiteKingIndex() : storage.getBlackKingIndex();
+
         if (deckManager.isCheckmate(currentSide)) {
+            layoutManager.highlightCell(kingIndex, javafx.scene.paint.Color.web("#f04444"));
             return "Checkmate! " + sideName(oppositeSide(currentSide)) + " wins!";
         }
         if (deckManager.isStalemate(currentSide)) {
@@ -149,8 +158,11 @@ public class MovementHandler implements EventHandler<MouseEvent> {
         }
 
         String status = sideName(currentSide) + "'s turn";
-        if (deckManager.isCheck(ChessPositionsStorage.getGlobalStorage(), currentSide)) {
+        if (deckManager.isCheck(storage, currentSide)) {
+            layoutManager.highlightCell(kingIndex, javafx.scene.paint.Color.web("#f04444", 0.6));
             status += " - Check!";
+        } else {
+            layoutManager.unhighlightCell(kingIndex);
         }
         return status;
     }

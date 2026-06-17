@@ -5,6 +5,7 @@ import chess.main.sample.figures.Figure;
 import chess.main.sample.figures.Position;
 import chess.main.sample.figures.instances.King;
 import chess.main.sample.figures.instances.Pawn;
+import chess.main.sample.figures.instances.Queen;
 import chess.main.sample.figures.movements.KingMove;
 import chess.main.sample.guimanage.DeckLayoutManager;
 import chess.main.sample.storage.ChessPositionsStorage;
@@ -136,6 +137,15 @@ public class DeckManager {
         ChessPositionsStorage storage = ChessPositionsStorage.getGlobalStorage();
         Map<Integer, Figure> positionsContainer = storage.getPositionsContainer();
         Figure figure = positionsContainer.get(fromInd);
+
+        // Check for Pawn Promotion
+        if (figure instanceof Pawn) {
+            int row = ChessUtils.getRow(toInd);
+            if ((figure.getPosition() == Position.WHITE && row == 0) ||
+                (figure.getPosition() == Position.BLACK && row == 7)) {
+                figure = new Queen(figure.getPosition());
+            }
+        }
 
         DeckLayoutManager.getInstance().makeTurn(fromInd, toInd, figure);
 
