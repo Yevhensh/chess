@@ -2,8 +2,8 @@ package chess.main.sample.guimanage;
 
 import chess.main.sample.figures.Figure;
 import chess.main.sample.figures.Position;
+import chess.main.sample.game.GameState;
 import chess.main.sample.game.Selected;
-import chess.main.sample.game.TurnSwitcher;
 import chess.main.sample.manage.DeckManager;
 import chess.main.sample.storage.ChessPositionsStorage;
 import javafx.event.EventHandler;
@@ -14,17 +14,22 @@ import javafx.scene.input.MouseEvent;
 import javafx.scene.shape.Rectangle;
 
 import java.util.List;
+import java.util.Map;
 
 public class MovementHandler implements EventHandler<MouseEvent> {
 
     private static final int IMAGE_VIEW_OFFSET = 10;
 
-    public static final MovementHandler INSTANCE = new MovementHandler();
+    private final DeckLayoutManager layoutManager;
+    private final DeckManager deckManager;
+    private final ChessPositionsStorage storage;
+    private final GameState gameState;
 
-    private final DeckLayoutManager layoutManager = DeckLayoutManager.getInstance();
-    private final DeckManager deckManager = DeckManager.getInstance();
-
-    private MovementHandler() {
+    public MovementHandler(DeckLayoutManager layoutManager, DeckManager deckManager, ChessPositionsStorage storage, GameState gameState) {
+        this.layoutManager = layoutManager;
+        this.deckManager = deckManager;
+        this.storage = storage;
+        this.gameState = gameState;
     }
 
     @Override
@@ -34,11 +39,23 @@ public class MovementHandler implements EventHandler<MouseEvent> {
             return;
         }
 
-        if (Selected.isGlobalSelected()) {
+        if (gameState.hasSelection()) {
             handleExistingSelection(clicked);
         } else {
             handleInitialSelection(clicked);
         }
+    }
+
+    public void handleUndo() {
+        clearSelectionHighlights();
+        gameState.clearSelection();
+        deckManager.undoMove();
+    }
+
+    public void handleRedo() {
+        clearSelectionHighlights();
+        gameState.clearSelection();
+        deckManager.redoMove();
     }
 
     private Selected resolveClickedSelection(Node node) {
@@ -55,8 +72,8 @@ public class MovementHandler implements EventHandler<MouseEvent> {
     }
 
     private void handleExistingSelection(Selected clicked) {
-        Figure selectedFigure = Selected.getGlobalSelected();
-        int fromIndex = Selected.getGlobalIndex();
+        Figure selectedFigure = gameState.getSelectedPiece();
+        int fromIndex = gameState.getSelectedIndex();
 
         if (isAllyPiece(clicked, selectedFigure)) {
             selectPiece(clicked);
@@ -81,26 +98,28 @@ public class MovementHandler implements EventHandler<MouseEvent> {
     }
 
     private boolean isCurrentTurn(Figure figure) {
-        return TurnSwitcher.getPosition().equals(figure.getPosition());
+        return gameState.getCurrentTurn().equals(figure.getPosition());
     }
 
     private boolean isValidMoveTarget(Selected clicked, Figure selectedFigure, int fromIndex) {
-        List<Integer> availableMoves = selectedFigure.getAllAvailableMovements(fromIndex);
+        Map<Integer, Figure> positions = storage.getPositionsContainer();
+        List<Integer> availableMoves = selectedFigure.getAllAvailableMovements(positions, fromIndex);
         return availableMoves.contains(clicked.index());
     }
 
     private void selectPiece(Selected selected) {
-        if (Selected.isGlobalSelected()) {
+        if (gameState.hasSelection()) {
             clearSelectionHighlights();
         }
-        Selected.setGlobalSelected(selected);
+        gameState.setSelected(selected.selected(), selected.index());
         layoutManager.highlightCell(selected.index());
 
-        List<Integer> availableMoves = selected.selected().getAllAvailableMovements(selected.index());
+        Map<Integer, Figure> positions = storage.getPositionsContainer();
+        List<Integer> availableMoves = selected.selected().getAllAvailableMovements(positions, selected.index());
         for (int moveIndex : availableMoves) {
             if (deckManager.isMoveLegal(selected.index(), moveIndex, selected.selected().getPosition())) {
                 boolean isCapture = deckManager.isOppositeFigureOnDeckCell(
-                        chess.main.sample.storage.ChessPositionsStorage.getGlobalStorage().getPositionsContainer(),
+                        positions,
                         moveIndex,
                         selected.selected().getPosition()
                 );
@@ -110,10 +129,11 @@ public class MovementHandler implements EventHandler<MouseEvent> {
     }
 
     private void clearSelectionHighlights() {
-        if (Selected.isGlobalSelected()) {
-            int fromIndex = Selected.getGlobalIndex();
+        if (gameState.hasSelection()) {
+            int fromIndex = gameState.getSelectedIndex();
             layoutManager.unhighlightCell(fromIndex);
-            List<Integer> availableMoves = Selected.getGlobalSelected().getAllAvailableMovements(fromIndex);
+            Map<Integer, Figure> positions = storage.getPositionsContainer();
+            List<Integer> availableMoves = gameState.getSelectedPiece().getAllAvailableMovements(positions, fromIndex);
             for (int moveIndex : availableMoves) {
                 layoutManager.clearIndicators(moveIndex);
             }
@@ -132,21 +152,20 @@ public class MovementHandler implements EventHandler<MouseEvent> {
         layoutManager.highlightCell(fromIndex, javafx.scene.paint.Color.web("#f6f669", 0.3));
         layoutManager.highlightCell(clicked.index(), javafx.scene.paint.Color.web("#f6f669", 0.3));
 
-        TurnSwitcher.switchPosition();
-        Selected.emptyGlobalSelected();
+        gameState.switchTurn();
+        gameState.clearSelection();
         updateStatus();
     }
 
-    private void updateStatus() {
-        Label statusLabel = LayoutContainer.getStatusLabel();
+    public void updateStatus() {
+        Label statusLabel = layoutManager.getStatusLabel();
         if (statusLabel == null) {
             return;
         }
-        statusLabel.setText(buildStatusMessage(TurnSwitcher.getPosition()));
+        statusLabel.setText(buildStatusMessage(gameState.getCurrentTurn()));
     }
 
     private String buildStatusMessage(Position currentSide) {
-        ChessPositionsStorage storage = ChessPositionsStorage.getGlobalStorage();
         int kingIndex = currentSide == Position.WHITE ? storage.getWhiteKingIndex() : storage.getBlackKingIndex();
 
         if (deckManager.isCheckmate(currentSide)) {

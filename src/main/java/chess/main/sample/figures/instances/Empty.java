@@ -1,9 +1,9 @@
 package chess.main.sample.figures.instances;
 
 import chess.main.sample.figures.Figure;
-
 import java.util.Collections;
 import java.util.List;
+import java.util.Map;
 
 public class Empty extends Figure {
     @Override
@@ -22,12 +22,7 @@ public class Empty extends Figure {
     }
 
     @Override
-    public List<Integer> getAllAvailableMovements(int deckCell) {
-        return Collections.emptyList();
-    }
-
-    @Override
-    public List<Integer> getAllAvailableMovements(java.util.Map<Integer, Figure> positions, int deckCell) {
+    public List<Integer> getAllAvailableMovements(Map<Integer, Figure> positions, int deckCell) {
         return Collections.emptyList();
     }
 }

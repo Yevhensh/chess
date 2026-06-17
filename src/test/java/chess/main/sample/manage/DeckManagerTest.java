@@ -3,6 +3,7 @@ package chess.main.sample.manage;
 import chess.main.sample.figures.Position;
 import chess.main.sample.figures.instances.King;
 import chess.main.sample.figures.instances.Rok;
+import chess.main.sample.game.GameState;
 import chess.main.sample.storage.ChessPositionsStorage;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
@@ -19,16 +20,7 @@ public class DeckManagerTest {
     public void setUp() {
         storage = new ChessPositionsStorage();
         storage.setPositionsContainer(new HashMap<>());
-        deckManager = DeckManager.getInstance();
-
-        // Set as global storage
-        try {
-            java.lang.reflect.Method setGlobal = ChessPositionsStorage.class.getDeclaredMethod("setGlobalStorage", ChessPositionsStorage.class);
-            setGlobal.setAccessible(true);
-            setGlobal.invoke(null, storage);
-        } catch (Exception e) {
-            e.printStackTrace();
-        }
+        deckManager = new DeckManager(storage, new GameState());
     }
 
     @Test

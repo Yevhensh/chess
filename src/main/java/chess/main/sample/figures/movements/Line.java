@@ -3,7 +3,6 @@ package chess.main.sample.figures.movements;
 
 import chess.main.sample.figures.Figure;
 import chess.main.sample.figures.Movement;
-import chess.main.sample.manage.DeckManager;
 import chess.main.sample.utils.ChessUtils;
 
 import java.util.ArrayList;
@@ -48,11 +47,10 @@ public class Line extends Movement {
             Figure figure,
             IntStream coordinates,
             IntUnaryOperator toDeckIndex) {
-        DeckManager deckManager = DeckManager.getInstance();
         List<Integer> indices = coordinates.mapToObj(toDeckIndex::applyAsInt).collect(Collectors.toList());
 
         long emptySquareCount = indices.stream()
-                .takeWhile(nextIndex -> deckManager.isEmptyDeckCell(positions, nextIndex))
+                .takeWhile(nextIndex -> ChessUtils.isEmpty(positions, nextIndex))
                 .count();
 
         List<Integer> moves = indices.stream()
@@ -61,7 +59,7 @@ public class Line extends Movement {
 
         if (emptySquareCount < indices.size()) {
             int captureIndex = indices.get((int) emptySquareCount);
-            if (deckManager.isOppositeFigureOnDeckCell(positions, captureIndex, figure.getPosition())) {
+            if (ChessUtils.isOpposite(positions, captureIndex, figure.getPosition())) {
                 moves.add(captureIndex);
             }
         }

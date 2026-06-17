@@ -1,13 +1,12 @@
 package chess.main.sample.figures.instances;
 
-
 import chess.main.sample.figures.Figure;
 import chess.main.sample.figures.Position;
 import chess.main.sample.figures.movements.Diagonal;
 import chess.main.sample.figures.movements.Line;
-
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Map;
 
 public class Queen extends Figure {
     public Queen(Position position) {
@@ -20,12 +19,7 @@ public class Queen extends Figure {
     }
 
     @Override
-    public List<Integer> getAllAvailableMovements(int deckCell) {
-        return getAllAvailableMovements(chess.main.sample.storage.ChessPositionsStorage.getGlobalStorage().getPositionsContainer(), deckCell);
-    }
-
-    @Override
-    public List<Integer> getAllAvailableMovements(java.util.Map<Integer, Figure> positions, int deckCell) {
+    public List<Integer> getAllAvailableMovements(Map<Integer, Figure> positions, int deckCell) {
         List<Integer> availableMovements = new ArrayList<>();
         Diagonal diagonalMove = new Diagonal();
         Line lineMove = new Line();

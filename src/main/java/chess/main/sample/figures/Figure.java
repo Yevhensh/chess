@@ -1,6 +1,7 @@
 package chess.main.sample.figures;
 
 import java.util.List;
+import java.util.Map;
 
 public abstract class Figure {
 
@@ -19,13 +20,7 @@ public abstract class Figure {
 
     public abstract String getFileNaming();
 
-    public abstract List<Integer> getAllAvailableMovements(int deckCell);
-
-    public abstract List<Integer> getAllAvailableMovements(java.util.Map<Integer, Figure> positions, int deckCell);
-
-    public List<Integer> getPseudoLegalMovements(int deckCell) {
-        return getAllAvailableMovements(deckCell);
-    }
+    public abstract List<Integer> getAllAvailableMovements(Map<Integer, Figure> positions, int deckCell);
 
     public boolean isWhite() {
         return this.position == Position.WHITE;

@@ -2,7 +2,6 @@ package chess.main.sample.figures.movements;
 
 import chess.main.sample.figures.Figure;
 import chess.main.sample.figures.Movement;
-import chess.main.sample.manage.DeckManager;
 import chess.main.sample.utils.ChessUtils;
 
 import java.util.ArrayList;
@@ -38,9 +37,8 @@ public class Diagonal extends Movement {
                 .map(coords -> ChessUtils.getIndex(coords[0], coords[1]))
                 .collect(Collectors.toList());
 
-        DeckManager deckManager = DeckManager.getInstance();
         long emptySquareCount = indices.stream()
-                .takeWhile(nextIndex -> deckManager.isEmptyDeckCell(positions, nextIndex))
+                .takeWhile(nextIndex -> ChessUtils.isEmpty(positions, nextIndex))
                 .count();
 
         List<Integer> moves = indices.stream()
@@ -49,7 +47,7 @@ public class Diagonal extends Movement {
 
         if (emptySquareCount < indices.size()) {
             int captureIndex = indices.get((int) emptySquareCount);
-            if (deckManager.isOppositeFigureOnDeckCell(positions, captureIndex, figure.getPosition())) {
+            if (ChessUtils.isOpposite(positions, captureIndex, figure.getPosition())) {
                 moves.add(captureIndex);
             }
         }

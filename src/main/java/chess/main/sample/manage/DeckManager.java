@@ -3,10 +3,13 @@ package chess.main.sample.manage;
 
 import chess.main.sample.figures.Figure;
 import chess.main.sample.figures.Position;
+import chess.main.sample.figures.instances.Empty;
 import chess.main.sample.figures.instances.King;
 import chess.main.sample.figures.instances.Pawn;
 import chess.main.sample.figures.instances.Queen;
 import chess.main.sample.figures.movements.KingMove;
+import chess.main.sample.game.GameState;
+import chess.main.sample.game.Move;
 import chess.main.sample.guimanage.DeckLayoutManager;
 import chess.main.sample.storage.ChessPositionsStorage;
 import chess.main.sample.utils.ChessUtils;
@@ -19,38 +22,36 @@ import java.util.stream.IntStream;
 
 public class DeckManager {
 
-    private static DeckManager instance;
+    private final ChessPositionsStorage storage;
+    private final GameState gameState;
+    private DeckLayoutManager layoutManager;
 
-    private static ChessPositionsStorage chessPositionsStorage = ChessPositionsStorage.getGlobalStorage();
-
-    public static DeckManager getInstance() {
-        if (instance == null) {
-            instance = new DeckManager();
-        }
-        return instance;
+    public DeckManager(ChessPositionsStorage storage, GameState gameState) {
+        this.storage = storage;
+        this.gameState = gameState;
     }
 
-    private DeckManager() {
+    public void setLayoutManager(DeckLayoutManager layoutManager) {
+        this.layoutManager = layoutManager;
     }
 
     public boolean isAllyFigureOnDeckCell(Map<Integer, Figure> positions, int deckCell, Position position) {
-        return (!isEmptyDeckCell(positions, deckCell) && !isOppositeFigureOnDeckCell(positions, deckCell, position));
+        return ChessUtils.isAlly(positions, deckCell, position);
     }
 
     public boolean isEmptyDeckCell(Map<Integer, Figure> positions, int deckCell) {
-        return (positions.get(deckCell) == null);
+        return ChessUtils.isEmpty(positions, deckCell);
     }
 
     public boolean isOppositeFigureOnDeckCell(Map<Integer, Figure> positions, int deckCell, Position position) {
-        Figure figure = positions.get(deckCell);
-        return (figure != null) && (figure.getPosition() != position);
+        return ChessUtils.isOpposite(positions, deckCell, position);
     }
 
     public List<Integer> getAllAvailableSiteMovements(Map<Integer, Figure> positions, Position position) {
         return positions.entrySet()
                 .stream()
                 .filter(item -> item.getValue().getPosition().equals(position))
-                .flatMap(item -> item.getValue().getAllAvailableMovements(item.getKey()).stream())
+                .flatMap(item -> item.getValue().getAllAvailableMovements(positions, item.getKey()).stream())
                 .collect(Collectors.toList());
     }
 
@@ -66,7 +67,7 @@ public class DeckManager {
         return switch (figure) {
             case King king -> new KingMove().getBasicMoves(positions, entry.getKey(), king);
             case Pawn pawn -> getPawnAttacks(entry.getKey(), pawn);
-            default -> figure.getAllAvailableMovements(entry.getKey());
+            default -> figure.getAllAvailableMovements(positions, entry.getKey());
         };
     }
 
@@ -95,7 +96,6 @@ public class DeckManager {
     }
 
     public boolean isMoveLegal(int fromInd, int toInd, Position side) {
-        ChessPositionsStorage storage = ChessPositionsStorage.getGlobalStorage();
         Map<Integer, Figure> currentPositions = storage.getPositionsContainer();
 
         Figure movingFigure = currentPositions.get(fromInd);
@@ -127,16 +127,11 @@ public class DeckManager {
         return !isCheck;
     }
 
-    public void makeIndependentTurn(Map<Integer, Figure> positionsContainer, int fromInd, int toInd) {
-        Figure figure = positionsContainer.get(fromInd);
-        positionsContainer.remove(fromInd);
-        positionsContainer.put(toInd, figure);
-    }
-
     public void makeTurn(int fromInd, int toInd) {
-        ChessPositionsStorage storage = ChessPositionsStorage.getGlobalStorage();
         Map<Integer, Figure> positionsContainer = storage.getPositionsContainer();
         Figure figure = positionsContainer.get(fromInd);
+        Figure captured = positionsContainer.get(toInd);
+        boolean wasPromoted = false;
 
         // Check for Pawn Promotion
         if (figure instanceof Pawn) {
@@ -144,10 +139,13 @@ public class DeckManager {
             if ((figure.getPosition() == Position.WHITE && row == 0) ||
                 (figure.getPosition() == Position.BLACK && row == 7)) {
                 figure = new Queen(figure.getPosition());
+                wasPromoted = true;
             }
         }
 
-        DeckLayoutManager.getInstance().makeTurn(fromInd, toInd, figure);
+        gameState.getHistoryManager().addMove(new Move(fromInd, toInd, positionsContainer.get(fromInd), captured, wasPromoted));
+
+        layoutManager.makeTurn(fromInd, toInd, figure);
 
         positionsContainer.remove(fromInd);
         positionsContainer.put(toInd, figure);
@@ -158,24 +156,75 @@ public class DeckManager {
         }
     }
 
+    public void undoMove() {
+        Move move = gameState.getHistoryManager().undo();
+        if (move == null) return;
+
+        Map<Integer, Figure> positions = storage.getPositionsContainer();
+        positions.put(move.fromIndex(), move.movedFigure());
+        if (move.capturedFigure() != null) {
+            positions.put(move.toIndex(), move.capturedFigure());
+        } else {
+            positions.remove(move.toIndex());
+        }
+
+        if (move.movedFigure() instanceof King) {
+            if (move.movedFigure().getPosition() == Position.WHITE) storage.setWhiteKingIndex(move.fromIndex());
+            else storage.setBlackKingIndex(move.fromIndex());
+        }
+
+        layoutManager.makeTurn(move.toIndex(), move.fromIndex(), move.movedFigure());
+        if (move.capturedFigure() != null) {
+            layoutManager.renderCellAtIndex(move.toIndex(), move.capturedFigure());
+        } else {
+            layoutManager.renderCellAtIndex(move.toIndex(), new Empty());
+        }
+
+        gameState.switchTurn();
+        layoutManager.updateStatusMessage();
+    }
+
+    public void redoMove() {
+        Move move = gameState.getHistoryManager().redo();
+        if (move == null) return;
+
+        Figure figure = move.movedFigure();
+        if (move.wasPromoted()) {
+            figure = new Queen(figure.getPosition());
+        }
+
+        Map<Integer, Figure> positions = storage.getPositionsContainer();
+        positions.remove(move.fromIndex());
+        positions.put(move.toIndex(), figure);
+
+        if (figure instanceof King) {
+            if (figure.getPosition() == Position.WHITE) storage.setWhiteKingIndex(move.toIndex());
+            else storage.setBlackKingIndex(move.toIndex());
+        }
+
+        layoutManager.makeTurn(move.fromIndex(), move.toIndex(), figure);
+
+        gameState.switchTurn();
+        layoutManager.updateStatusMessage();
+    }
+
     public boolean hasAnyLegalMoves(Position side) {
-        ChessPositionsStorage storage = ChessPositionsStorage.getGlobalStorage();
         Map<Integer, Figure> currentPositions = new HashMap<>(storage.getPositionsContainer());
 
         return currentPositions.entrySet().stream()
                 .filter(entry -> entry.getValue().getPosition() == side)
                 .anyMatch(entry -> {
                     int fromInd = entry.getKey();
-                    return entry.getValue().getAllAvailableMovements(fromInd).stream()
+                    return entry.getValue().getAllAvailableMovements(currentPositions, fromInd).stream()
                             .anyMatch(toInd -> isMoveLegal(fromInd, toInd, side));
                 });
     }
 
     public boolean isCheckmate(Position side) {
-        return isCheck(ChessPositionsStorage.getGlobalStorage(), side) && !hasAnyLegalMoves(side);
+        return isCheck(storage, side) && !hasAnyLegalMoves(side);
     }
 
     public boolean isStalemate(Position side) {
-        return !isCheck(ChessPositionsStorage.getGlobalStorage(), side) && !hasAnyLegalMoves(side);
+        return !isCheck(storage, side) && !hasAnyLegalMoves(side);
     }
 }

@@ -23,19 +23,9 @@ public class ChessPositionsStorage {
     private static final int PAWNS_PER_SIDE = 8;
     private static final int BACK_RANK_SIZE = 8;
 
-    private static ChessPositionsStorage globalStorage;
-
     private Map<Integer, Figure> positionsContainer;
     private int whiteKingIndex;
     private int blackKingIndex;
-
-    public static ChessPositionsStorage getGlobalStorage() {
-        return globalStorage;
-    }
-
-    private static void setGlobalStorage(ChessPositionsStorage chessPositionsStorage) {
-        globalStorage = chessPositionsStorage;
-    }
 
     public Map<Integer, Figure> gameStartPositionRemind() {
         positionsContainer = new HashMap<>();
@@ -45,8 +35,6 @@ public class ChessPositionsStorage {
         placePawnRow(Position.WHITE, WHITE_PAWNS_START);
         placeBackRank(Position.WHITE, WHITE_BACK_RANK_START);
 
-        LayoutChessPositionsStorage.getInstance().gameStartPositionsRemind(positionsContainer);
-        setGlobalStorage(this);
         return positionsContainer;
     }
 

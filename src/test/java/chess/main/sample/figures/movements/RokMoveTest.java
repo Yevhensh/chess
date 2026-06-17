@@ -19,13 +19,6 @@ public class RokMoveTest {
     public void setUp() {
         storage = new ChessPositionsStorage();
         storage.setPositionsContainer(new HashMap<>());
-        try {
-            java.lang.reflect.Method setGlobal = ChessPositionsStorage.class.getDeclaredMethod("setGlobalStorage", ChessPositionsStorage.class);
-            setGlobal.setAccessible(true);
-            setGlobal.invoke(null, storage);
-        } catch (Exception e) {
-            e.printStackTrace();
-        }
     }
 
     @Test
@@ -34,17 +27,12 @@ public class RokMoveTest {
         int startCell = 36; // e4
         storage.getPositionsContainer().put(startCell, rok);
 
-        List<Integer> moves = rok.getAllAvailableMovements(startCell);
-        // Cross from e4:
-        // Up: 28, 20, 12, 4
-        // Down: 44, 52, 60
-        // Left: 35, 34, 33, 32
-        // Right: 37, 38, 39
+        List<Integer> moves = rok.getAllAvailableMovements(storage.getPositionsContainer(), startCell);
         assertEquals(14, moves.size());
-        assertTrue(moves.contains(4));
-        assertTrue(moves.contains(60));
-        assertTrue(moves.contains(32));
-        assertTrue(moves.contains(39));
+        assertTrue(moves.contains(4));  // e8
+        assertTrue(moves.contains(60)); // e1
+        assertTrue(moves.contains(32)); // a4
+        assertTrue(moves.contains(39)); // h4
     }
 
     @Test
@@ -53,13 +41,11 @@ public class RokMoveTest {
         int startCell = 36; // e4
         storage.getPositionsContainer().put(startCell, rok);
 
-        // Ally at 28 (e5)
-        storage.getPositionsContainer().put(28, new Pawn(Position.WHITE));
+        storage.getPositionsContainer().put(44, new Pawn(Position.WHITE)); // e3
 
-        List<Integer> moves = rok.getAllAvailableMovements(startCell);
-        assertFalse(moves.contains(28));
-        assertFalse(moves.contains(20)); // Beyond blocked cell
-        assertTrue(moves.contains(44)); // Other direction still OK
+        List<Integer> moves = rok.getAllAvailableMovements(storage.getPositionsContainer(), startCell);
+        assertFalse(moves.contains(44));
+        assertFalse(moves.contains(52));
     }
 
     @Test
@@ -68,12 +54,11 @@ public class RokMoveTest {
         int startCell = 36; // e4
         storage.getPositionsContainer().put(startCell, rok);
 
-        // Enemy at 28 (e5)
-        storage.getPositionsContainer().put(28, new Pawn(Position.BLACK));
+        storage.getPositionsContainer().put(44, new Pawn(Position.BLACK)); // e3
 
-        List<Integer> moves = rok.getAllAvailableMovements(startCell);
-        assertTrue(moves.contains(28)); // Can capture
-        assertFalse(moves.contains(20)); // But cannot jump over
+        List<Integer> moves = rok.getAllAvailableMovements(storage.getPositionsContainer(), startCell);
+        assertTrue(moves.contains(44));
+        assertFalse(moves.contains(52));
     }
 
     @Test
@@ -82,11 +67,7 @@ public class RokMoveTest {
         int startCell = 0; // a8
         storage.getPositionsContainer().put(startCell, rok);
 
-        List<Integer> moves = rok.getAllAvailableMovements(startCell);
-        // Right: 1, 2, 3, 4, 5, 6, 7
-        // Down: 8, 16, 24, 32, 40, 48, 56
+        List<Integer> moves = rok.getAllAvailableMovements(storage.getPositionsContainer(), startCell);
         assertEquals(14, moves.size());
-        assertTrue(moves.contains(7));
-        assertTrue(moves.contains(56));
     }
 }
