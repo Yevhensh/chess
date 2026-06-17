@@ -17,7 +17,7 @@ import java.util.List;
 
 public class MovementHandler implements EventHandler<MouseEvent> {
 
-    private static final int IMAGE_VIEW_OFFSET = 9;
+    private static final int IMAGE_VIEW_OFFSET = 10;
 
     public static final MovementHandler INSTANCE = new MovementHandler();
 
@@ -91,10 +91,28 @@ public class MovementHandler implements EventHandler<MouseEvent> {
 
     private void selectPiece(Selected selected) {
         if (Selected.isGlobalSelected()) {
-            layoutManager.unhighlightCell(Selected.getGlobalIndex());
+            clearSelectionHighlights();
         }
         Selected.setGlobalSelected(selected);
         layoutManager.highlightCell(selected.index());
+
+        List<Integer> availableMoves = selected.selected().getAllAvailableMovements(selected.index());
+        for (int moveIndex : availableMoves) {
+            if (deckManager.isMoveLegal(selected.index(), moveIndex, selected.selected().getPosition())) {
+                layoutManager.highlightCell(moveIndex, javafx.scene.paint.Color.web("#f6f669", 0.5));
+            }
+        }
+    }
+
+    private void clearSelectionHighlights() {
+        if (Selected.isGlobalSelected()) {
+            int fromIndex = Selected.getGlobalIndex();
+            layoutManager.unhighlightCell(fromIndex);
+            List<Integer> availableMoves = Selected.getGlobalSelected().getAllAvailableMovements(fromIndex);
+            for (int moveIndex : availableMoves) {
+                layoutManager.unhighlightCell(moveIndex);
+            }
+        }
     }
 
     private void executeMove(Selected clicked, int fromIndex, Figure selectedFigure) {
@@ -102,8 +120,13 @@ public class MovementHandler implements EventHandler<MouseEvent> {
             return;
         }
 
-        layoutManager.unhighlightCell(fromIndex);
+        clearSelectionHighlights();
         deckManager.makeTurn(fromIndex, clicked.index());
+
+        // Highlight last move
+        layoutManager.highlightCell(fromIndex, javafx.scene.paint.Color.web("#f6f669", 0.3));
+        layoutManager.highlightCell(clicked.index(), javafx.scene.paint.Color.web("#f6f669", 0.3));
+
         TurnSwitcher.switchPosition();
         Selected.emptyGlobalSelected();
         updateStatus();

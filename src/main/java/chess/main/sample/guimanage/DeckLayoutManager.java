@@ -11,8 +11,10 @@ import javafx.scene.image.Image;
 import javafx.scene.image.ImageView;
 import javafx.scene.layout.AnchorPane;
 import javafx.scene.paint.Color;
+import javafx.geometry.Pos;
 import javafx.scene.shape.Rectangle;
 import javafx.scene.text.Font;
+import javafx.scene.text.FontWeight;
 
 import java.util.ArrayList;
 import java.util.HashMap;
@@ -24,7 +26,7 @@ import static chess.main.sample.constants.SceneConstants.*;
 
 public class DeckLayoutManager {
 
-    private static final int IMAGE_VIEW_OFFSET = 9;
+    private static final int IMAGE_VIEW_OFFSET = 10;
     private static final int STATUS_LABEL_OFFSET = 10;
 
     private static DeckLayoutManager instance;
@@ -47,6 +49,7 @@ public class DeckLayoutManager {
         AnchorPane pane = new AnchorPane();
         LayoutContainer.setLayout(pane);
         pane.getChildren().add(createDeckBackgroundRectangle());
+        renderCoordinates();
         pane.getChildren().add(createStatusLabel());
 
         IntStream.range(0, CELLS_COUNT).forEach(cellIndex -> {
@@ -55,11 +58,36 @@ public class DeckLayoutManager {
         });
     }
 
-    public void highlightCell(int index) {
+    private void renderCoordinates() {
+        String[] files = {"a", "b", "c", "d", "e", "f", "g", "h"};
+        for (int i = 0; i < 8; i++) {
+            // Files (a-h)
+            Label fileLabel = new Label(files[i]);
+            fileLabel.setTextFill(Color.web("#a7a6a4"));
+            fileLabel.setFont(Font.font("Segoe UI", 14));
+            fileLabel.setLayoutX(START_FROM_BORDER_WIDTH + i * RECTANGLE_DIMENSION + RECTANGLE_DIMENSION / 2.0 - 5);
+            fileLabel.setLayoutY(START_FROM_BORDER_WIDTH + ROWS_COUNT * RECTANGLE_DIMENSION + 5);
+            LayoutContainer.getLayout().getChildren().add(fileLabel);
+
+            // Ranks (1-8)
+            Label rankLabel = new Label(String.valueOf(8 - i));
+            rankLabel.setTextFill(Color.web("#a7a6a4"));
+            rankLabel.setFont(Font.font("Segoe UI", 14));
+            rankLabel.setLayoutX(START_FROM_BORDER_WIDTH - 20);
+            rankLabel.setLayoutY(START_FROM_BORDER_WIDTH + i * RECTANGLE_DIMENSION + RECTANGLE_DIMENSION / 2.0 - 10);
+            LayoutContainer.getLayout().getChildren().add(rankLabel);
+        }
+    }
+
+    public void highlightCell(int index, Color color) {
         Rectangle rectangle = findCellRectangle(index);
         if (rectangle != null) {
-            rectangle.setFill(Color.YELLOW);
+            rectangle.setFill(color);
         }
+    }
+
+    public void highlightCell(int index) {
+        highlightCell(index, Color.web("#f6f669"));
     }
 
     public void unhighlightCell(int index) {
@@ -84,15 +112,19 @@ public class DeckLayoutManager {
     }
 
     private Rectangle createDeckBackgroundRectangle() {
-        int dimension = RECTANGLE_DIMENSION * ROWS_COUNT + BORDER_WIDTH * 2;
-        return new Rectangle(0, 0, dimension, dimension);
+        Rectangle rectangle = new Rectangle(0, 0, SCENE_WIDTH, SCENE_HEIGHT);
+        rectangle.setFill(Color.web("#262421"));
+        return rectangle;
     }
 
     private Label createStatusLabel() {
         Label statusLabel = new Label("White's turn");
-        statusLabel.setLayoutX(START_FROM_BORDER_WIDTH);
-        statusLabel.setLayoutY(START_FROM_BORDER_WIDTH + RECTANGLE_DIMENSION * ROWS_COUNT + STATUS_LABEL_OFFSET);
-        statusLabel.setFont(new Font("Arial", 20));
+        statusLabel.setPrefWidth(SCENE_WIDTH);
+        statusLabel.setAlignment(Pos.CENTER);
+        statusLabel.setLayoutX(0);
+        statusLabel.setLayoutY(START_FROM_BORDER_WIDTH + RECTANGLE_DIMENSION * ROWS_COUNT + 20);
+        statusLabel.setFont(Font.font("Segoe UI", FontWeight.BOLD, 22));
+        statusLabel.setTextFill(Color.WHITE);
         LayoutContainer.setStatusLabel(statusLabel);
         return statusLabel;
     }
@@ -163,7 +195,7 @@ public class DeckLayoutManager {
     }
 
     private Color getCellColor(int row, int col) {
-        return (row + col) % 2 != 0 ? Color.DARKGREEN : Color.GREY;
+        return (row + col) % 2 != 0 ? Color.web("#769656") : Color.web("#eeeed2");
     }
 
     private int getScreenX(int col) {
