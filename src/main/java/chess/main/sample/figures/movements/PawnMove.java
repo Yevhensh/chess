@@ -2,6 +2,7 @@ package chess.main.sample.figures.movements;
 
 import chess.main.sample.figures.Figure;
 import chess.main.sample.figures.Movement;
+import chess.main.sample.figures.instances.Pawn;
 import chess.main.sample.utils.ChessUtils;
 
 import java.util.ArrayList;
@@ -42,6 +43,16 @@ public class PawnMove extends Movement {
                         .filter(captureIndex -> ChessUtils.isOpposite(positions, captureIndex, figure.getPosition()))
                         .collect(Collectors.toList())
         );
+
+        // En Passant
+        if (lastMove != null && lastMove.movedFigure() instanceof Pawn &&
+                Math.abs(ChessUtils.getRow(lastMove.fromIndex()) - ChessUtils.getRow(lastMove.toIndex())) == 2) {
+
+            int lastMoveCol = ChessUtils.getCol(lastMove.toIndex());
+            if (Math.abs(lastMoveCol - col) == 1 && ChessUtils.getRow(lastMove.toIndex()) == row) {
+                availableMovesList.add(ChessUtils.getIndex(row + forwardDir, lastMoveCol));
+            }
+        }
 
         return availableMovesList;
     }
