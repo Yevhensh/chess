@@ -35,25 +35,12 @@ public class DeckManager {
         this.layoutManager = layoutManager;
     }
 
-    public boolean isAllyFigureOnDeckCell(Map<Integer, Figure> positions, int deckCell, Position position) {
-        return ChessUtils.isAlly(positions, deckCell, position);
-    }
 
-    public boolean isEmptyDeckCell(Map<Integer, Figure> positions, int deckCell) {
-        return ChessUtils.isEmpty(positions, deckCell);
-    }
 
     public boolean isOppositeFigureOnDeckCell(Map<Integer, Figure> positions, int deckCell, Position position) {
         return ChessUtils.isOpposite(positions, deckCell, position);
     }
 
-    public List<Integer> getAllAvailableSiteMovements(Map<Integer, Figure> positions, Position position) {
-        return positions.entrySet()
-                .stream()
-                .filter(item -> item.getValue().getPosition().equals(position))
-                .flatMap(item -> item.getValue().getAllAvailableMovements(positions, item.getKey()).stream())
-                .collect(Collectors.toList());
-    }
 
     public List<Integer> getAllOppositeSiteAttacks(Map<Integer, Figure> positions, Position oppositePosition) {
         return positions.entrySet().stream()
