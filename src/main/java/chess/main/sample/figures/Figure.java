@@ -26,9 +26,6 @@ public abstract class Figure {
         return this.position == Position.WHITE;
     }
 
-    public boolean isBlack() {
-        return this.position == Position.BLACK;
-    }
 
     public Position getPosition() {
         return position;

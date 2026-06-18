@@ -13,9 +13,6 @@ public class GameState {
         return currentTurn;
     }
 
-    public void setCurrentTurn(Position currentTurn) {
-        this.currentTurn = currentTurn;
-    }
 
     public void switchTurn() {
         currentTurn = (currentTurn == Position.WHITE) ? Position.BLACK : Position.WHITE;
