@@ -2,7 +2,6 @@ package chess.main.sample.figures.movements;
 
 import chess.main.sample.figures.Figure;
 import chess.main.sample.figures.Movement;
-import chess.main.sample.manage.DeckManager;
 import chess.main.sample.utils.ChessUtils;
 
 import java.util.ArrayList;
@@ -23,13 +22,13 @@ public class PawnMove extends Movement {
         int nextRow = row + forwardDir;
         if (ChessUtils.isValid(nextRow, col)) {
             int upMove = ChessUtils.getIndex(nextRow, col);
-            if (DeckManager.getInstance().isEmptyDeckCell(positions, upMove)) {
+            if (ChessUtils.isEmpty(positions, upMove)) {
                 availableMovesList.add(upMove);
 
                 if (isOnStartRow(row, figure)) {
                     int upUpRow = row + 2 * forwardDir;
                     int upUpMove = ChessUtils.getIndex(upUpRow, col);
-                    if (DeckManager.getInstance().isEmptyDeckCell(positions, upUpMove)) {
+                    if (ChessUtils.isEmpty(positions, upUpMove)) {
                         availableMovesList.add(upUpMove);
                     }
                 }
@@ -40,8 +39,7 @@ public class PawnMove extends Movement {
                 IntStream.of(col - 1, col + 1)
                         .filter(nextCol -> ChessUtils.isValid(row + forwardDir, nextCol))
                         .mapToObj(nextCol -> ChessUtils.getIndex(row + forwardDir, nextCol))
-                        .filter(captureIndex -> DeckManager.getInstance()
-                                .isOppositeFigureOnDeckCell(positions, captureIndex, figure.getPosition()))
+                        .filter(captureIndex -> ChessUtils.isOpposite(positions, captureIndex, figure.getPosition()))
                         .collect(Collectors.toList())
         );
 
