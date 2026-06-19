@@ -4,7 +4,6 @@ import chess.main.sample.figures.Figure;
 import chess.main.sample.figures.Movement;
 import chess.main.sample.figures.instances.Pawn;
 import chess.main.sample.utils.ChessUtils;
-
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
@@ -12,52 +11,56 @@ import java.util.stream.Collectors;
 import java.util.stream.IntStream;
 
 public class PawnMove extends Movement {
-    @Override
-    public List<Integer> determineAvailableMovements(Map<Integer, Figure> positions, int deckCell, Figure figure) {
-        List<Integer> availableMovesList = new ArrayList<>();
-        int row = ChessUtils.getRow(deckCell);
-        int col = ChessUtils.getCol(deckCell);
+  @Override
+  public List<Integer> determineAvailableMovements(
+      Map<Integer, Figure> positions, int deckCell, Figure figure) {
+    List<Integer> availableMovesList = new ArrayList<>();
+    int row = ChessUtils.getRow(deckCell);
+    int col = ChessUtils.getCol(deckCell);
 
-        int forwardDir = figure.isWhite() ? -1 : 1;
+    int forwardDir = figure.isWhite() ? -1 : 1;
 
-        int nextRow = row + forwardDir;
-        if (ChessUtils.isValid(nextRow, col)) {
-            int upMove = ChessUtils.getIndex(nextRow, col);
-            if (ChessUtils.isEmpty(positions, upMove)) {
-                availableMovesList.add(upMove);
+    int nextRow = row + forwardDir;
+    if (ChessUtils.isValid(nextRow, col)) {
+      int upMove = ChessUtils.getIndex(nextRow, col);
+      if (ChessUtils.isEmpty(positions, upMove)) {
+        availableMovesList.add(upMove);
 
-                if (isOnStartRow(row, figure)) {
-                    int upUpRow = row + 2 * forwardDir;
-                    int upUpMove = ChessUtils.getIndex(upUpRow, col);
-                    if (ChessUtils.isEmpty(positions, upUpMove)) {
-                        availableMovesList.add(upUpMove);
-                    }
-                }
-            }
+        if (isOnStartRow(row, figure)) {
+          int upUpRow = row + 2 * forwardDir;
+          int upUpMove = ChessUtils.getIndex(upUpRow, col);
+          if (ChessUtils.isEmpty(positions, upUpMove)) {
+            availableMovesList.add(upUpMove);
+          }
         }
-
-        availableMovesList.addAll(
-                IntStream.of(col - 1, col + 1)
-                        .filter(nextCol -> ChessUtils.isValid(row + forwardDir, nextCol))
-                        .mapToObj(nextCol -> ChessUtils.getIndex(row + forwardDir, nextCol))
-                        .filter(captureIndex -> ChessUtils.isOpposite(positions, captureIndex, figure.getPosition()))
-                        .collect(Collectors.toList())
-        );
-
-        // En Passant
-        if (lastMove != null && lastMove.movedFigure() instanceof Pawn &&
-                Math.abs(ChessUtils.getRow(lastMove.fromIndex()) - ChessUtils.getRow(lastMove.toIndex())) == 2) {
-
-            int lastMoveCol = ChessUtils.getCol(lastMove.toIndex());
-            if (Math.abs(lastMoveCol - col) == 1 && ChessUtils.getRow(lastMove.toIndex()) == row) {
-                availableMovesList.add(ChessUtils.getIndex(row + forwardDir, lastMoveCol));
-            }
-        }
-
-        return availableMovesList;
+      }
     }
 
-    private boolean isOnStartRow(int row, Figure figure) {
-        return figure.isWhite() ? row == 6 : row == 1;
+    availableMovesList.addAll(
+        IntStream.of(col - 1, col + 1)
+            .filter(nextCol -> ChessUtils.isValid(row + forwardDir, nextCol))
+            .mapToObj(nextCol -> ChessUtils.getIndex(row + forwardDir, nextCol))
+            .filter(
+                captureIndex ->
+                    ChessUtils.isOpposite(positions, captureIndex, figure.getPosition()))
+            .collect(Collectors.toList()));
+
+    // En Passant
+    if (lastMove != null
+        && lastMove.movedFigure() instanceof Pawn
+        && Math.abs(ChessUtils.getRow(lastMove.fromIndex()) - ChessUtils.getRow(lastMove.toIndex()))
+            == 2) {
+
+      int lastMoveCol = ChessUtils.getCol(lastMove.toIndex());
+      if (Math.abs(lastMoveCol - col) == 1 && ChessUtils.getRow(lastMove.toIndex()) == row) {
+        availableMovesList.add(ChessUtils.getIndex(row + forwardDir, lastMoveCol));
+      }
     }
+
+    return availableMovesList;
+  }
+
+  private boolean isOnStartRow(int row, Figure figure) {
+    return figure.isWhite() ? row == 6 : row == 1;
+  }
 }

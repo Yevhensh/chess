@@ -8,24 +8,25 @@ import java.util.List;
 import java.util.Map;
 
 public class Knight extends Figure {
-    public Knight(Position position) {
-        super(position);
-    }
+  public Knight(Position position) {
+    super(position);
+  }
 
-    @Override
-    public String getFileNaming() {
-        return getPosition() == Position.BLACK ? "knight" : "knight-white";
-    }
+  @Override
+  public String getFileNaming() {
+    return getPosition() == Position.BLACK ? "knight" : "knight-white";
+  }
 
-    @Override
-    public List<Integer> getAllAvailableMovements(Map<Integer, Figure> positions, int deckCell, Move lastMove) {
-        KnightMove movement = new KnightMove();
-        movement.setLastMove(lastMove);
-        return movement.determineAvailableMovements(positions, deckCell, this);
-    }
+  @Override
+  public List<Integer> getAllAvailableMovements(
+      Map<Integer, Figure> positions, int deckCell, Move lastMove) {
+    KnightMove movement = new KnightMove();
+    movement.setLastMove(lastMove);
+    return movement.determineAvailableMovements(positions, deckCell, this);
+  }
 
-    @Override
-    public String toString() {
-        return "Knight";
-    }
+  @Override
+  public String toString() {
+    return "Knight";
+  }
 }

@@ -8,24 +8,25 @@ import java.util.List;
 import java.util.Map;
 
 public class Bishop extends Figure {
-    public Bishop(Position position) {
-        super(position);
-    }
+  public Bishop(Position position) {
+    super(position);
+  }
 
-    @Override
-    public String getFileNaming() {
-        return getPosition() == Position.BLACK ? "bishop" : "bishop-white";
-    }
+  @Override
+  public String getFileNaming() {
+    return getPosition() == Position.BLACK ? "bishop" : "bishop-white";
+  }
 
-    @Override
-    public List<Integer> getAllAvailableMovements(Map<Integer, Figure> positions, int deckCell, Move lastMove) {
-        Diagonal movement = new Diagonal();
-        movement.setLastMove(lastMove);
-        return movement.determineAvailableMovements(positions, deckCell, this);
-    }
+  @Override
+  public List<Integer> getAllAvailableMovements(
+      Map<Integer, Figure> positions, int deckCell, Move lastMove) {
+    Diagonal movement = new Diagonal();
+    movement.setLastMove(lastMove);
+    return movement.determineAvailableMovements(positions, deckCell, this);
+  }
 
-    @Override
-    public String toString() {
-        return "Bishop";
-    }
+  @Override
+  public String toString() {
+    return "Bishop";
+  }
 }

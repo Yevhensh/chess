@@ -13,6 +13,8 @@ This document provides guidance for AI agents working on this project.
 
 ## Coding Conventions
 
+- **Code Style**: The project follows **Google Java Style**. Use `mvn fmt:format` to reformat the code before submitting changes.
+
 - **Piece Instances**: Pieces are represented by classes in `chess.main.sample.figures.instances`.
 - **Movement Strategies**: Complex movement logic (Diagonal, Line, etc.) is encapsulated in classes in `chess.main.sample.figures.movements`.
 - **UI Management**: JavaFX UI components are managed by `DeckLayoutManager`. Do not modify the UI directly from logic classes.

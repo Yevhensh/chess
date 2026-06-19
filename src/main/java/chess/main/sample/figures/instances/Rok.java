@@ -8,24 +8,25 @@ import java.util.List;
 import java.util.Map;
 
 public class Rok extends Figure {
-    public Rok(Position position) {
-        super(position);
-    }
+  public Rok(Position position) {
+    super(position);
+  }
 
-    @Override
-    public String getFileNaming() {
-        return getPosition() == Position.BLACK ? "rok" : "rok-white";
-    }
+  @Override
+  public String getFileNaming() {
+    return getPosition() == Position.BLACK ? "rok" : "rok-white";
+  }
 
-    @Override
-    public List<Integer> getAllAvailableMovements(Map<Integer, Figure> positions, int deckCell, Move lastMove) {
-        Line movement = new Line();
-        movement.setLastMove(lastMove);
-        return movement.determineAvailableMovements(positions, deckCell, this);
-    }
+  @Override
+  public List<Integer> getAllAvailableMovements(
+      Map<Integer, Figure> positions, int deckCell, Move lastMove) {
+    Line movement = new Line();
+    movement.setLastMove(lastMove);
+    return movement.determineAvailableMovements(positions, deckCell, this);
+  }
 
-    @Override
-    public String toString() {
-        return "Rok";
-    }
+  @Override
+  public String toString() {
+    return "Rok";
+  }
 }

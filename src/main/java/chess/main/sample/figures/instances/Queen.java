@@ -10,29 +10,30 @@ import java.util.List;
 import java.util.Map;
 
 public class Queen extends Figure {
-    public Queen(Position position) {
-        super(position);
-    }
+  public Queen(Position position) {
+    super(position);
+  }
 
-    @Override
-    public String getFileNaming() {
-        return getPosition() == Position.BLACK ? "queen" : "queen-white";
-    }
+  @Override
+  public String getFileNaming() {
+    return getPosition() == Position.BLACK ? "queen" : "queen-white";
+  }
 
-    @Override
-    public List<Integer> getAllAvailableMovements(Map<Integer, Figure> positions, int deckCell, Move lastMove) {
-        List<Integer> availableMovements = new ArrayList<>();
-        Diagonal diagonalMove = new Diagonal();
-        diagonalMove.setLastMove(lastMove);
-        Line lineMove = new Line();
-        lineMove.setLastMove(lastMove);
-        availableMovements.addAll(diagonalMove.determineAvailableMovements(positions, deckCell, this));
-        availableMovements.addAll(lineMove.determineAvailableMovements(positions, deckCell, this));
-        return availableMovements;
-    }
+  @Override
+  public List<Integer> getAllAvailableMovements(
+      Map<Integer, Figure> positions, int deckCell, Move lastMove) {
+    List<Integer> availableMovements = new ArrayList<>();
+    Diagonal diagonalMove = new Diagonal();
+    diagonalMove.setLastMove(lastMove);
+    Line lineMove = new Line();
+    lineMove.setLastMove(lastMove);
+    availableMovements.addAll(diagonalMove.determineAvailableMovements(positions, deckCell, this));
+    availableMovements.addAll(lineMove.determineAvailableMovements(positions, deckCell, this));
+    return availableMovements;
+  }
 
-    @Override
-    public String toString() {
-        return "Queen";
-    }
+  @Override
+  public String toString() {
+    return "Queen";
+  }
 }
