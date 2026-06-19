@@ -13,7 +13,18 @@ import java.util.stream.IntStream;
 public class KingMove extends Movement {
     @Override
     public List<Integer> determineAvailableMovements(Map<Integer, Figure> positions, int deckCell, Figure figure) {
-        return getBasicMoves(positions, deckCell, figure);
+        List<Integer> moves = getBasicMoves(positions, deckCell, figure);
+
+        // Pseudo-legal castling moves
+        int row = ChessUtils.getRow(deckCell);
+        if (ChessUtils.getCol(deckCell) == 4) {
+            // Kingside
+            moves.add(ChessUtils.getIndex(row, 6));
+            // Queenside
+            moves.add(ChessUtils.getIndex(row, 2));
+        }
+
+        return moves;
     }
 
     public List<Integer> getBasicMoves(Map<Integer, Figure> positions, int deckCell, Figure figure) {

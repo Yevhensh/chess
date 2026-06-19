@@ -8,6 +8,23 @@ public class GameState {
     private Figure selectedPiece;
     private int selectedIndex = -1;
     private final HistoryManager historyManager = new HistoryManager();
+    private int halfMoveClock = 0;
+
+    public int getHalfMoveClock() {
+        return halfMoveClock;
+    }
+
+    public void incrementHalfMoveClock() {
+        this.halfMoveClock++;
+    }
+
+    public void resetHalfMoveClock() {
+        this.halfMoveClock = 0;
+    }
+
+    public void setHalfMoveClock(int halfMoveClock) {
+        this.halfMoveClock = halfMoveClock;
+    }
 
     public Position getCurrentTurn() {
         return currentTurn;

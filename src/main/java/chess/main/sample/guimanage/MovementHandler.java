@@ -7,6 +7,7 @@ import chess.main.sample.game.Selected;
 import chess.main.sample.manage.DeckManager;
 import chess.main.sample.storage.ChessPositionsStorage;
 import javafx.event.EventHandler;
+import chess.main.sample.utils.ChessUtils;
 import javafx.scene.Node;
 import javafx.scene.control.Label;
 import javafx.scene.image.ImageView;
@@ -81,7 +82,15 @@ public class MovementHandler implements EventHandler<MouseEvent> {
         }
 
         if (isValidMoveTarget(clicked, selectedFigure, fromIndex)) {
-            executeMove(clicked, fromIndex, selectedFigure);
+            boolean isLegal;
+            if (selectedFigure instanceof chess.main.sample.figures.instances.King && Math.abs(ChessUtils.getCol(fromIndex) - ChessUtils.getCol(clicked.index())) == 2) {
+                isLegal = deckManager.isCastlingLegal(fromIndex, clicked.index(), selectedFigure.getPosition());
+            } else {
+                isLegal = deckManager.isMoveLegal(fromIndex, clicked.index(), selectedFigure.getPosition());
+            }
+            if (isLegal) {
+                executeMove(clicked, fromIndex, selectedFigure);
+            }
         }
     }
 
@@ -103,7 +112,7 @@ public class MovementHandler implements EventHandler<MouseEvent> {
 
     private boolean isValidMoveTarget(Selected clicked, Figure selectedFigure, int fromIndex) {
         Map<Integer, Figure> positions = storage.getPositionsContainer();
-        List<Integer> availableMoves = selectedFigure.getAllAvailableMovements(positions, fromIndex);
+        List<Integer> availableMoves = selectedFigure.getAllAvailableMovements(positions, fromIndex, gameState.getHistoryManager().getLastMove());
         return availableMoves.contains(clicked.index());
     }
 
@@ -115,14 +124,27 @@ public class MovementHandler implements EventHandler<MouseEvent> {
         layoutManager.highlightCell(selected.index());
 
         Map<Integer, Figure> positions = storage.getPositionsContainer();
-        List<Integer> availableMoves = selected.selected().getAllAvailableMovements(positions, selected.index());
+        List<Integer> availableMoves = selected.selected().getAllAvailableMovements(positions, selected.index(), gameState.getHistoryManager().getLastMove());
         for (int moveIndex : availableMoves) {
-            if (deckManager.isMoveLegal(selected.index(), moveIndex, selected.selected().getPosition())) {
+            boolean isLegal;
+            if (selected.selected() instanceof chess.main.sample.figures.instances.King && Math.abs(ChessUtils.getCol(selected.index()) - ChessUtils.getCol(moveIndex)) == 2) {
+                isLegal = deckManager.isCastlingLegal(selected.index(), moveIndex, selected.selected().getPosition());
+            } else {
+                isLegal = deckManager.isMoveLegal(selected.index(), moveIndex, selected.selected().getPosition());
+            }
+
+            if (isLegal) {
                 boolean isCapture = deckManager.isOppositeFigureOnDeckCell(
                         positions,
                         moveIndex,
                         selected.selected().getPosition()
                 );
+                // Check if it is an En Passant capture
+                if (!isCapture && selected.selected() instanceof chess.main.sample.figures.instances.Pawn) {
+                    if (ChessUtils.getCol(selected.index()) != ChessUtils.getCol(moveIndex)) {
+                        isCapture = true;
+                    }
+                }
                 layoutManager.showMoveIndicator(moveIndex, isCapture);
             }
         }
@@ -133,7 +155,7 @@ public class MovementHandler implements EventHandler<MouseEvent> {
             int fromIndex = gameState.getSelectedIndex();
             layoutManager.unhighlightCell(fromIndex);
             Map<Integer, Figure> positions = storage.getPositionsContainer();
-            List<Integer> availableMoves = gameState.getSelectedPiece().getAllAvailableMovements(positions, fromIndex);
+            List<Integer> availableMoves = gameState.getSelectedPiece().getAllAvailableMovements(positions, fromIndex, gameState.getHistoryManager().getLastMove());
             for (int moveIndex : availableMoves) {
                 layoutManager.clearIndicators(moveIndex);
             }
@@ -141,10 +163,6 @@ public class MovementHandler implements EventHandler<MouseEvent> {
     }
 
     private void executeMove(Selected clicked, int fromIndex, Figure selectedFigure) {
-        if (!deckManager.isMoveLegal(fromIndex, clicked.index(), selectedFigure.getPosition())) {
-            return;
-        }
-
         clearSelectionHighlights();
         deckManager.makeTurn(fromIndex, clicked.index());
 
@@ -174,6 +192,15 @@ public class MovementHandler implements EventHandler<MouseEvent> {
         }
         if (deckManager.isStalemate(currentSide)) {
             return "Stalemate! Draw.";
+        }
+        if (deckManager.isThreefoldRepetition()) {
+            return "Draw by Threefold Repetition.";
+        }
+        if (deckManager.isFiftyMoveRule()) {
+            return "Draw by 50-move rule.";
+        }
+        if (deckManager.isInsufficientMaterial()) {
+            return "Draw by Insufficient Material.";
         }
 
         String status = sideName(currentSide) + "'s turn";

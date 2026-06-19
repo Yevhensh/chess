@@ -1,6 +1,7 @@
 package chess.main.sample.figures;
 
 import java.util.List;
+import chess.main.sample.game.Move;
 import java.util.Map;
 
 public abstract class Figure {
@@ -20,7 +21,11 @@ public abstract class Figure {
 
     public abstract String getFileNaming();
 
-    public abstract List<Integer> getAllAvailableMovements(Map<Integer, Figure> positions, int deckCell);
+    public List<Integer> getAllAvailableMovements(Map<Integer, Figure> positions, int deckCell) {
+        return getAllAvailableMovements(positions, deckCell, null);
+    }
+
+    public abstract List<Integer> getAllAvailableMovements(Map<Integer, Figure> positions, int deckCell, Move lastMove);
 
     public boolean isWhite() {
         return this.position == Position.WHITE;
