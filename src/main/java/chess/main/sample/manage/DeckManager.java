@@ -93,41 +93,24 @@ public class DeckManager {
     Figure king = storage.getPositionsContainer().get(fromInd);
     if (!(king instanceof King)) return false;
 
-    // King must not have moved
-    // Note: This is simplified, we should check if THIS specific king moved.
-    // HistoryManager has the moves.
-    boolean kingMoved =
-        gameState.getHistoryManager().getMoves().stream()
-            .anyMatch(
-                m -> m.movedFigure() instanceof King && m.movedFigure().getPosition() == side);
-    if (kingMoved) return false;
+    if (hasPieceMoved(fromInd, king)) return false;
 
     int row = ChessUtils.getRow(fromInd);
     int col = ChessUtils.getCol(toInd);
-    int rookInd = (col == 6) ? ChessUtils.getIndex(row, 7) : ChessUtils.getIndex(row, 0);
-    Figure rook = storage.getPositionsContainer().get(rookInd);
 
-    if (!(rook instanceof chess.main.sample.figures.instances.Rok) || rook.getPosition() != side)
-      return false;
+    int rookIndex = (col == 6) ? ChessUtils.getIndex(row, 7) : ChessUtils.getIndex(row, 0);
+    Figure rook = storage.getPositionsContainer().get(rookIndex);
 
-    // Rook must not have moved
-    boolean rookMoved =
-        gameState.getHistoryManager().getMoves().stream()
-            .anyMatch(
-                m ->
-                    m.fromIndex() == rookInd
-                        || (m.movedFigure() == rook && m.fromIndex() != rookInd));
-    if (rookMoved) return false;
+    if (!(rook instanceof Rok) || hasPieceMoved(rookIndex, rook)) return false;
 
-    // Path must be clear
-    int start = Math.min(ChessUtils.getCol(fromInd), ChessUtils.getCol(rookInd));
-    int end = Math.max(ChessUtils.getCol(fromInd), ChessUtils.getCol(rookInd));
-    for (int c = start + 1; c < end; c++) {
-      if (!ChessUtils.isEmpty(storage.getPositionsContainer(), ChessUtils.getIndex(row, c)))
-        return false;
+    // Check if squares between king and rook are empty
+    int start = Math.min(ChessUtils.getCol(fromInd), ChessUtils.getCol(rookIndex)) + 1;
+    int end = Math.max(ChessUtils.getCol(fromInd), ChessUtils.getCol(rookIndex));
+    for (int i = start; i < end; i++) {
+      if (storage.getPositionsContainer().get(ChessUtils.getIndex(row, i)) != null) return false;
     }
 
-    // King must not be in check, and must not pass through squares under attack
+    // Check if king passes through check
     if (isCheck(storage, side)) return false;
 
     int direction = (col == 6) ? 1 : -1;
@@ -257,17 +240,7 @@ public class DeckManager {
     positionsContainer.put(toInd, figure);
 
     if (isCastling) {
-      int row = ChessUtils.getRow(toInd);
-      int rookFrom, rookTo;
-      if (ChessUtils.getCol(toInd) == 6) { // Kingside
-        rookFrom = ChessUtils.getIndex(row, 7);
-        rookTo = ChessUtils.getIndex(row, 5);
-      } else { // Queenside
-        rookFrom = ChessUtils.getIndex(row, 0);
-        rookTo = ChessUtils.getIndex(row, 3);
-      }
-      Figure rook = positionsContainer.remove(rookFrom);
-      positionsContainer.put(rookTo, rook);
+      handleCastlingRook(toInd, false);
     }
     if (isEnPassant) {
       positionsContainer.remove(capturedIndex);
@@ -307,17 +280,7 @@ public class DeckManager {
 
     // Handle castling reversal
     if (move.isCastling()) {
-      int row = ChessUtils.getRow(move.toIndex());
-      int rookFrom, rookTo;
-      if (ChessUtils.getCol(move.toIndex()) == 6) { // Kingside
-        rookFrom = ChessUtils.getIndex(row, 7);
-        rookTo = ChessUtils.getIndex(row, 5);
-      } else { // Queenside
-        rookFrom = ChessUtils.getIndex(row, 0);
-        rookTo = ChessUtils.getIndex(row, 3);
-      }
-      Figure rook = positions.remove(rookTo);
-      positions.put(rookFrom, rook);
+      handleCastlingRook(move.toIndex(), true);
     }
 
     gameState.switchTurn();
@@ -353,20 +316,33 @@ public class DeckManager {
 
     // Handle castling redo
     if (move.isCastling()) {
-      int row = ChessUtils.getRow(move.toIndex());
-      int rookFrom, rookTo;
-      if (ChessUtils.getCol(move.toIndex()) == 6) { // Kingside
-        rookFrom = ChessUtils.getIndex(row, 7);
-        rookTo = ChessUtils.getIndex(row, 5);
-      } else { // Queenside
-        rookFrom = ChessUtils.getIndex(row, 0);
-        rookTo = ChessUtils.getIndex(row, 3);
-      }
-      Figure rook = positions.remove(rookFrom);
-      positions.put(rookTo, rook);
+      handleCastlingRook(move.toIndex(), false);
     }
 
     gameState.switchTurn();
+  }
+
+  private void handleCastlingRook(int kingToIndex, boolean reverse) {
+    int row = ChessUtils.getRow(kingToIndex);
+    int col = ChessUtils.getCol(kingToIndex);
+    int rookFrom, rookTo;
+
+    if (col == 6) { // Kingside
+      rookFrom = ChessUtils.getIndex(row, 7);
+      rookTo = ChessUtils.getIndex(row, 5);
+    } else { // Queenside
+      rookFrom = ChessUtils.getIndex(row, 0);
+      rookTo = ChessUtils.getIndex(row, 3);
+    }
+
+    Map<Integer, Figure> positions = storage.getPositionsContainer();
+    if (reverse) {
+      Figure rook = positions.remove(rookTo);
+      positions.put(rookFrom, rook);
+    } else {
+      Figure rook = positions.remove(rookFrom);
+      positions.put(rookTo, rook);
+    }
   }
 
   public boolean hasAnyLegalMoves(Position side) {

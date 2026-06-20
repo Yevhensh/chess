@@ -2,36 +2,33 @@ package chess.main.sample.game;
 
 import java.util.ArrayList;
 import java.util.List;
+import java.util.stream.Collectors;
 
 public class HistoryManager {
-  private final List<Move> moves = new ArrayList<>();
-  private final List<String> boardSnapshots = new ArrayList<>();
-  private final List<Integer> halfMoveClocks = new ArrayList<>();
+  private record HistoryEntry(Move move, String snapshot, int halfMoveClock) {}
+
+  private final List<HistoryEntry> history = new ArrayList<>();
   private int currentIndex = -1;
 
   public void addMove(Move move, String boardSnapshot, int halfMoveClock) {
     // Clear redo history
-    if (currentIndex < moves.size() - 1) {
-      moves.subList(currentIndex + 1, moves.size()).clear();
-      boardSnapshots.subList(currentIndex + 1, boardSnapshots.size()).clear();
-      halfMoveClocks.subList(currentIndex + 1, halfMoveClocks.size()).clear();
+    if (currentIndex < history.size() - 1) {
+      history.subList(currentIndex + 1, history.size()).clear();
     }
-    moves.add(move);
-    boardSnapshots.add(boardSnapshot);
-    halfMoveClocks.add(halfMoveClock);
+    history.add(new HistoryEntry(move, boardSnapshot, halfMoveClock));
     currentIndex++;
   }
 
   public Move undo() {
     if (canUndo()) {
-      return moves.get(currentIndex--);
+      return history.get(currentIndex--).move();
     }
     return null;
   }
 
   public int getPreviousHalfMoveClock() {
     if (currentIndex >= 0) {
-      return halfMoveClocks.get(currentIndex);
+      return history.get(currentIndex).halfMoveClock();
     }
     return 0;
   }
@@ -39,7 +36,7 @@ public class HistoryManager {
   public Move redo() {
     if (canRedo()) {
       currentIndex++;
-      return moves.get(currentIndex);
+      return history.get(currentIndex).move();
     }
     return null;
   }
@@ -49,24 +46,26 @@ public class HistoryManager {
   }
 
   public boolean canRedo() {
-    return currentIndex < moves.size() - 1;
+    return currentIndex < history.size() - 1;
   }
 
   public Move getLastMove() {
     if (currentIndex >= 0) {
-      return moves.get(currentIndex);
+      return history.get(currentIndex).move();
     }
     return null;
   }
 
   public List<Move> getMoves() {
-    return moves.subList(0, currentIndex + 1);
+    return history.subList(0, currentIndex + 1).stream()
+        .map(HistoryEntry::move)
+        .collect(Collectors.toList());
   }
 
   public int getRepetitionCount(String currentSnapshot) {
     int count = 1;
     for (int i = 0; i <= currentIndex; i++) {
-      if (boardSnapshots.get(i).equals(currentSnapshot)) {
+      if (history.get(i).snapshot().equals(currentSnapshot)) {
         count++;
       }
     }
