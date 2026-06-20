@@ -12,29 +12,31 @@ import javafx.stage.Stage;
 
 public class Main extends Application {
 
-    @Override
-    public void start(Stage primaryStage) throws Exception {
-        primaryStage.setTitle("Chess");
+  @Override
+  public void start(Stage primaryStage) throws Exception {
+    primaryStage.setTitle("Chess");
 
-        ChessPositionsStorage storage = new ChessPositionsStorage();
-        GameState gameState = new GameState();
+    ChessPositionsStorage storage = new ChessPositionsStorage();
+    GameState gameState = new GameState();
 
-        DeckManager deckManager = new DeckManager(storage, gameState);
-        DeckLayoutManager layoutManager = new DeckLayoutManager(storage, gameState);
-        MovementHandler movementHandler = new MovementHandler(layoutManager, deckManager, storage, gameState);
+    DeckManager deckManager = new DeckManager(storage, gameState);
+    DeckLayoutManager layoutManager = new DeckLayoutManager(storage, gameState);
+    MovementHandler movementHandler =
+        new MovementHandler(layoutManager, deckManager, storage, gameState);
 
-        deckManager.setLayoutManager(layoutManager);
-        layoutManager.setMovementHandler(movementHandler);
+    deckManager.setLayoutManager(layoutManager);
+    layoutManager.setMovementHandler(movementHandler);
 
-        layoutManager.initializeBasicGameStart();
+    layoutManager.initializeBasicGameStart();
 
-        primaryStage.setScene(new Scene(layoutManager.getPane(), SceneConstants.SCENE_WIDTH,
-                SceneConstants.SCENE_HEIGHT));
-        primaryStage.show();
-        primaryStage.setResizable(false);
-    }
+    primaryStage.setScene(
+        new Scene(
+            layoutManager.getPane(), SceneConstants.SCENE_WIDTH, SceneConstants.SCENE_HEIGHT));
+    primaryStage.show();
+    primaryStage.setResizable(false);
+  }
 
-    public static void main(String[] args) {
-        launch(args);
-    }
+  public static void main(String[] args) {
+    launch(args);
+  }
 }

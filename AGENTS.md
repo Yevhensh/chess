@@ -6,12 +6,14 @@ This document provides guidance for AI agents working on this project.
 
 1. **Coordinate Logic**: Always use `chess.main.sample.utils.ChessUtils` for converting between 1D indices (0-63) and 2D coordinates (row, col), and for checking if a move is within board boundaries.
 2. **Move Validation**:
-    - **Pseudo-legal moves**: Defined in `Figure` subclasses and `Movement` implementations. These only check if the move is physically possible for the piece on a given board state (e.g., sliding pieces blocked by others).
-    - **Legal moves**: Validated by `chess.main.sample.manage.DeckManager`. A move is only legal if it is pseudo-legal AND does not leave the player's king in check.
+  - **Pseudo-legal moves**: Defined in `Figure` subclasses and `Movement` implementations. These only check if the move is physically possible for the piece on a given board state (e.g., sliding pieces blocked by others).
+  - **Legal moves**: Validated by `chess.main.sample.manage.DeckManager`. A move is only legal if it is pseudo-legal AND does not leave the player's king in check.
 3. **Avoid Nulls**: Methods returning lists of movements (e.g., `getAllAvailableMovements`) must return `Collections.emptyList()` instead of `null` if no moves are available.
 4. **Global State**: The project uses a singleton-like global storage in `ChessPositionsStorage`. When writing tests, ensure you properly set up and tear down this global state to avoid side effects between tests.
 
 ## Coding Conventions
+
+- **Code Style**: The project follows **Google Java Style**. Use `mvn fmt:format` to reformat the code before submitting changes.
 
 - **Piece Instances**: Pieces are represented by classes in `chess.main.sample.figures.instances`.
 - **Movement Strategies**: Complex movement logic (Diagonal, Line, etc.) is encapsulated in classes in `chess.main.sample.figures.movements`.
