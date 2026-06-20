@@ -3,7 +3,6 @@ package chess.main.sample.manage;
 import chess.main.sample.figures.Figure;
 import chess.main.sample.figures.Position;
 import chess.main.sample.figures.instances.Bishop;
-import chess.main.sample.figures.instances.Empty;
 import chess.main.sample.figures.instances.King;
 import chess.main.sample.figures.instances.Knight;
 import chess.main.sample.figures.instances.Pawn;
@@ -12,7 +11,6 @@ import chess.main.sample.figures.instances.Rok;
 import chess.main.sample.figures.movements.KingMove;
 import chess.main.sample.game.GameState;
 import chess.main.sample.game.Move;
-import chess.main.sample.guimanage.DeckLayoutManager;
 import chess.main.sample.storage.ChessPositionsStorage;
 import chess.main.sample.utils.ChessUtils;
 import java.util.HashMap;
@@ -25,15 +23,10 @@ public class DeckManager {
 
   private final ChessPositionsStorage storage;
   private final GameState gameState;
-  private DeckLayoutManager layoutManager;
 
   public DeckManager(ChessPositionsStorage storage, GameState gameState) {
     this.storage = storage;
     this.gameState = gameState;
-  }
-
-  public void setLayoutManager(DeckLayoutManager layoutManager) {
-    this.layoutManager = layoutManager;
   }
 
   public boolean isOppositeFigureOnDeckCell(
@@ -260,11 +253,6 @@ public class DeckManager {
             getBoardSnapshot(),
             gameState.getHalfMoveClock());
 
-    layoutManager.makeTurn(fromInd, toInd, figure);
-    if (isEnPassant) {
-      layoutManager.renderCellAtIndex(capturedIndex, new Empty());
-    }
-
     positionsContainer.remove(fromInd);
     positionsContainer.put(toInd, figure);
 
@@ -280,8 +268,6 @@ public class DeckManager {
       }
       Figure rook = positionsContainer.remove(rookFrom);
       positionsContainer.put(rookTo, rook);
-      layoutManager.renderCellAtIndex(rookFrom, new Empty());
-      layoutManager.renderCellAtIndex(rookTo, rook);
     }
     if (isEnPassant) {
       positionsContainer.remove(capturedIndex);
@@ -332,22 +318,9 @@ public class DeckManager {
       }
       Figure rook = positions.remove(rookTo);
       positions.put(rookFrom, rook);
-      layoutManager.renderCellAtIndex(rookTo, new Empty());
-      layoutManager.renderCellAtIndex(rookFrom, rook);
-    }
-
-    layoutManager.makeTurn(move.toIndex(), move.fromIndex(), move.movedFigure());
-    if (move.capturedFigure() != null) {
-      layoutManager.renderCellAtIndex(move.capturedIndex(), move.capturedFigure());
-      if (move.isEnPassant()) {
-        layoutManager.renderCellAtIndex(move.toIndex(), new Empty());
-      }
-    } else {
-      layoutManager.renderCellAtIndex(move.toIndex(), new Empty());
     }
 
     gameState.switchTurn();
-    layoutManager.updateStatusMessage();
   }
 
   public void redoMove() {
@@ -371,7 +344,6 @@ public class DeckManager {
 
     if (move.capturedFigure() != null && move.isEnPassant()) {
       positions.remove(move.capturedIndex());
-      layoutManager.renderCellAtIndex(move.capturedIndex(), new Empty());
     }
 
     if (figure instanceof King) {
@@ -392,14 +364,9 @@ public class DeckManager {
       }
       Figure rook = positions.remove(rookFrom);
       positions.put(rookTo, rook);
-      layoutManager.renderCellAtIndex(rookFrom, new Empty());
-      layoutManager.renderCellAtIndex(rookTo, rook);
     }
 
-    layoutManager.makeTurn(move.fromIndex(), move.toIndex(), figure);
-
     gameState.switchTurn();
-    layoutManager.updateStatusMessage();
   }
 
   public boolean hasAnyLegalMoves(Position side) {

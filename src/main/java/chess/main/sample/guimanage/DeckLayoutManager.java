@@ -162,18 +162,22 @@ public class DeckLayoutManager {
     }
   }
 
+  public void syncFromStorage() {
+    Map<Integer, Figure> positions = chessPositionsStorage.getPositionsContainer();
+    IntStream.range(0, CELLS_COUNT)
+        .forEach(
+            cellIndex -> {
+              Figure figure = positions.getOrDefault(cellIndex, new Empty());
+              clearCell(cellIndex);
+              renderCellAtIndex(cellIndex, figure);
+            });
+  }
+
   public Selected getSelectedByDeckPosition(int x, int y) {
     int col = (x - START_FROM_BORDER_WIDTH) / RECTANGLE_DIMENSION;
     int row = (y - START_FROM_BORDER_WIDTH) / RECTANGLE_DIMENSION;
     int deckCell = ChessUtils.getIndex(row, col);
     return new Selected(chessPositionsStorage.getFigureByDeckCell(deckCell), deckCell);
-  }
-
-  public void makeTurn(int fromIndex, int toIndex, Figure figure) {
-    clearCell(fromIndex);
-    clearCell(toIndex);
-    renderCellAtIndex(fromIndex, new Empty());
-    renderCellAtIndex(toIndex, figure);
   }
 
   private Rectangle createDeckBackgroundRectangle() {
@@ -191,10 +195,6 @@ public class DeckLayoutManager {
     statusLabel.setFont(Font.font("Segoe UI", FontWeight.BOLD, 22));
     statusLabel.setTextFill(Color.WHITE);
     return statusLabel;
-  }
-
-  public void updateStatusMessage() {
-    movementHandler.updateStatus();
   }
 
   public Label getStatusLabel() {

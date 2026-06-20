@@ -24,18 +24,6 @@ public class AdvancedRulesTest {
     storage.setPositionsContainer(new HashMap<>());
     gameState = new GameState();
     deckManager = new DeckManager(storage, gameState);
-    // Mock DeckLayoutManager to avoid NullPointerException in makeTurn
-    deckManager.setLayoutManager(
-        new chess.main.sample.guimanage.DeckLayoutManager(storage, gameState) {
-          @Override
-          public void makeTurn(int f, int t, chess.main.sample.figures.Figure fig) {}
-
-          @Override
-          public void renderCellAtIndex(int i, chess.main.sample.figures.Figure fig) {}
-
-          @Override
-          public void updateStatusMessage() {}
-        });
   }
 
   @Test

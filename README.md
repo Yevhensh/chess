@@ -27,6 +27,17 @@ mvn clean compile
 mvn javafx:run
 ```
 
+### Run from IntelliJ IDEA:
+`mvn javafx:run` works because Maven adds the JavaFX module path. IntelliJ's default **Run** on `Main` does not.
+
+Either use the Maven tool window and run **`javafx:run`**, or add this once to your **Main** run configuration VM options (after `mvn compile`):
+
+```
+--module-path $PROJECT_DIR$/target/javafx-lib --add-modules javafx.controls
+```
+
+A shared run configuration is in `.run/Main.run.xml`.
+
 ### Run tests:
 ```bash
 mvn test

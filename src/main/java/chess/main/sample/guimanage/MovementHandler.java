@@ -54,12 +54,16 @@ public class MovementHandler implements EventHandler<MouseEvent> {
     clearSelectionHighlights();
     gameState.clearSelection();
     deckManager.undoMove();
+    layoutManager.syncFromStorage();
+    updateStatus();
   }
 
   public void handleRedo() {
     clearSelectionHighlights();
     gameState.clearSelection();
     deckManager.redoMove();
+    layoutManager.syncFromStorage();
+    updateStatus();
   }
 
   private Selected resolveClickedSelection(Node node) {
@@ -182,6 +186,7 @@ public class MovementHandler implements EventHandler<MouseEvent> {
   private void executeMove(Selected clicked, int fromIndex, Figure selectedFigure) {
     clearSelectionHighlights();
     deckManager.makeTurn(fromIndex, clicked.index());
+    layoutManager.syncFromStorage();
 
     // Highlight last move
     layoutManager.highlightCell(fromIndex, javafx.scene.paint.Color.web("#f6f669", 0.3));

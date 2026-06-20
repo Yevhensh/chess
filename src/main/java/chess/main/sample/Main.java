@@ -24,7 +24,6 @@ public class Main extends Application {
     MovementHandler movementHandler =
         new MovementHandler(layoutManager, deckManager, storage, gameState);
 
-    deckManager.setLayoutManager(layoutManager);
     layoutManager.setMovementHandler(movementHandler);
 
     layoutManager.initializeBasicGameStart();
